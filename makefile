@@ -5,7 +5,7 @@
 CC      := g++ 
 TARGET  := lgx
 CFLAGS  := -O3 -std=c++11   
-LDFLAGS := -lmysqlclient -lpthread
+LDFLAGS := -lpthread
 RM := rm -f 
 CP := cp -r
 MKDIR := mkdir

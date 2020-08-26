@@ -13,8 +13,6 @@
 #include <unordered_map>
 #include <pthread.h>
 
-#include "util.hh"
-
 using Json = nlohmann::json;
 
 enum class Process::ResponseCode {
