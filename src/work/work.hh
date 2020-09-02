@@ -2,7 +2,6 @@
 
 #include <map>
 #include <string>
-#include "../json/json.hpp"
 #include <unistd.h>
 #include <sstream>
 #include <time.h>
@@ -11,7 +10,9 @@
 #include <sys/stat.h>
 #include <unordered_map>
 #include <pthread.h>
+
 #include "../base.hh"
+#include "../third/json.hh"
 
 enum class lgx::work::ResponseCode {
     SUCCESS = 0,
@@ -34,7 +35,7 @@ class lgx::work::work {
     using json = lgx::third::json;
 public:
     explicit work(const std::map<std::string, std::string> &map_header_info, std::string &content); // uid for deal with offline
-    ~work();
+    ~work() {};
     void set_send_data_handler(lgx::util::callback2 send_data_handler);
     void set_error_handler(lgx::util::callback2 error_handler);
     void set_send_file_handler(lgx::util::callback1 send_file_handler);

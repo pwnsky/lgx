@@ -12,8 +12,15 @@ public:
     }
     ~count_down_latch() {}
 
-    void wait();
-    void count_down();
+    void wait() {
+        mutex_lock_guard mlg(mutex_);
+        while(count_ > 0) condition_.wait();
+    }
+    void count_down() {
+        mutex_lock_guard mlg(mutex_);
+        --count_;
+        if(count_ <= 0)  condition_.broadcast();
+    }
 private:
     int count_;
     mutable mutex_lock mutex_;

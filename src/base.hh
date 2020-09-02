@@ -6,7 +6,7 @@
 #include <pthread.h>
 #include <list>
 #include <unordered_map>
-#include "json/json.hpp"
+#include "third/json.hh"
 
 #define DEFAULT_CONFIG_FILE "./etc/config.json"
 

@@ -2,12 +2,13 @@
 #include <functional>
 #include <unordered_map>
 #include <memory>
+#include <iostream>
 #include <sys/epoll.h>
 
 #include "eventloop.hh"
 #include "http.hh"
 #include "../base.hh"
-#include <iostream>
+
 
 class lgx::net::channel {
 public:

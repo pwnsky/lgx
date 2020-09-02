@@ -5,7 +5,7 @@ int main(int argv, char **argc) {
 
     if(argv < 2) {
         std::cout << "-h get more info" << std::endl;
-        //return 0;
+        return 0;
     }
 
     lgx::start_up startup;

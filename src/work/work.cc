@@ -11,10 +11,6 @@ lgx::work::work::work(const std::map<std::string, std::string> &map_header_info,
     send_data_handler_(nullptr){
 }
 
-lgx::work::work::~work() {
-
-}
-
 void lgx::work::work::set_fd(int fd) {
     fd_ = fd;
 }
@@ -67,7 +63,6 @@ void lgx::work::work::handle_get() {
                 std::cout << "map_header_info_[url]" << e.what() << '\n';
                 error = true;
             }
-
         }
     } while(false);
     // Send get file
