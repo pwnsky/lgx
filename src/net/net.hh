@@ -20,7 +20,7 @@
 class lgx::net::net final{
 public:
     net(int port,int thread_number);
-    ~net();
+    ~net() {};
     void start();
     void handle_new_connection();
     void handle_connected();

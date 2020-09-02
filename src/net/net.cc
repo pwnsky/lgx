@@ -14,7 +14,6 @@ lgx::net::net::net(int port,int number_of_thread) :
         d_cout << "net init fail\n";
         abort();
     }
-
     listened_ = true;
     accept_channel_->set_fd(listen_fd);
     util::ignore_sigpipe();
@@ -22,9 +21,6 @@ lgx::net::net::net(int port,int number_of_thread) :
         d_cout << "set fd nonblocking error\n";
         abort();
     }
-}
-
-lgx::net::net::~net() {
 }
 
 void lgx::net::net::start() {

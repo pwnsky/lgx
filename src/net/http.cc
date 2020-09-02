@@ -443,7 +443,7 @@ void lgx::net::http::handle_error(int error_number, std::string message) {
     message = " " + message;
     std::string header_buffer, body_buffer;
     body_buffer += "<html><title>Bad request</title>";
-    body_buffer += "<body bgcolor=\"dead00\">";
+    body_buffer += "<body bgcolor=\"ffffff\">";
     body_buffer += std::to_string(error_number) + message;
     body_buffer += "<hr><em> " +  std::string(SERVER_NAME) + " </em>\n</body></html>";
     header_buffer += "HTTP/1.1 " + std::to_string(error_number) + message + "\r\n";

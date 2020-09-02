@@ -27,6 +27,35 @@ make
 
 ```
 chmod +x start && ./start
-
 ```
 
+ Input ip or domain you can see
+
+```
+Welcome to lgx server!
+```
+
+If you wanna change default page, you need to change the configure file(bin/etc/config.json), default configure file data as follows:
+
+```
+{
+    "port" : 80,
+    "number_of_thread": 8,
+    "log_path" : "data/log",
+    "root_path" : "www",
+    "web_page" : "index.html",
+    "web_404_page" : "404.html"
+}
+```
+
+You can restart server directly, not only recomplie the server again!
+
+
+
+Author: I0gan (徐绿国)
+
+QQ: 418894113
+
+[blog_1](https://www.cnblogs.com/lyxf/)
+
+[blog_2](https://i0gan.github.io)
