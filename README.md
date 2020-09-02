@@ -23,7 +23,7 @@ Now you can comple with make
 make
 ```
 
-### Run
+### run
 
 ```
 chmod +x start && ./start

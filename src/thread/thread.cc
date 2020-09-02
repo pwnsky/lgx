@@ -1,92 +1,85 @@
 ﻿#include "thread.hh"
 
-__thread pid_t  Thread::CurrentThread::tid = 0;
-__thread Thread::CurrentThread::State Thread::CurrentThread::state = CurrentThread::State::STOPED;
-__thread char *Thread::CurrentThread::name;
+__thread pid_t  lgx::thread::current_thread::tid = 0;
+__thread lgx::thread::current_thread::State lgx::thread::current_thread::state = current_thread::State::stopped;
+__thread char *lgx::thread::current_thread::name;
 
-Thread::Thread::Thread(const Util::CallBack &call_back, const std::string &name) :
+lgx::thread::thread::thread(const lgx::util::callback &call_back, const std::string &name) :
     started_(false),
     joined_(false),
     pthread_id(0),
     tid_(0),
-    func_(call_back), // 将要运行的回调函数
-    name_(name),      // 线程名称
+    func_(call_back),
+    name_(name),
     count_down_latch_(1) { // 等待机制, 单独一次开启一个开启线程, 就设置为1
 }
 
-Thread::Thread::~Thread() {
+lgx::thread::thread::~thread() {
     if(started_ && !joined_)
         pthread_detach(pthread_id);
 }
 
-// 设置线程名称
-void Thread::Thread::set_name(const std::string &name) {
+void lgx::thread::thread::set_name(const std::string &name) {
     name_ = name;
 }
 
-// 启动线程
-void Thread::Thread::Start() {
+void lgx::thread::thread::start() {
     assert(!started_);
     started_ = true;
-    // 所进行传递的参数
-    ThreadData *thread_data = new ThreadData(func_, name_, &tid_, &count_down_latch_);
-    // 创建线程
-    if(pthread_create(&pthread_id, nullptr, &Thread::Run, thread_data)) {
+    lgx::thread::thread_data *tdp = new thread_data(func_, name_, &tid_, &count_down_latch_);
+
+    if(pthread_create(&pthread_id, nullptr, &lgx::thread::thread::run, tdp)) {
         started_ = false;
-        delete thread_data; // 创建线程失败, 释放内存
+        std::cout << "create thread fail\n";
+        delete tdp;
     }else {
-        // 等待启动子线程
-        count_down_latch_.Wait();
+        count_down_latch_.wait();
         assert(tid_ > 0);
     }
 }
 
-// 子线程函数
-void *Thread::Thread::Run(void *arg) {
-    ThreadData *thread_data = static_cast<ThreadData *>(arg);
-    thread_data->Run();  // 运行将要调用的函数
-    delete thread_data;  // 释放内存
+void *lgx::thread::thread::run(void *arg) {
+    lgx::thread::thread_data *tdp = static_cast<thread_data *>(arg);
+    tdp->run();
+    delete tdp;
     return nullptr;
 }
 
-// join线程, 实现父线程等待子线程执行完毕
-int Thread::Thread::Join() {
-    assert(started_); // 保证已经启动
-    assert(!joined_); // 保证线程没有joined
+int lgx::thread::thread::join() {
+    assert(started_);
+    assert(!joined_);
     joined_ = true;
-    return pthread_join(pthread_id, nullptr); // join线程, 父线程必须等待子线程处理完毕
+    return pthread_join(pthread_id, nullptr);
 }
 
-bool Thread::Thread::IsStarted() {
+bool lgx::thread::thread::is_started() {
     return started_;
 }
 
 // 用于创建线程传递参数
-Thread::ThreadData::ThreadData(const Util::CallBack &func, const std::string &name,
-                              pid_t *tid, CountDownLatch *count_down_latch) :
+lgx::thread::thread_data::thread_data(const lgx::util::callback &func, const std::string &name,
+                              pid_t *tid, count_down_latch *cdlp) :
     func_(func),
     name_(name),
     tid_(tid),
-    count_down_latch_(count_down_latch) {
+    count_down_latch_(cdlp) {
 }
 
-Thread::ThreadData::~ThreadData() {
+lgx::thread::thread_data::~thread_data() {
 
 }
 
-void Thread::ThreadData::Run() {
+void lgx::thread::thread_data::run() {
 
-    *tid_ = CurrentThread::get_tid();
-    count_down_latch_->CountDown(); // 线程运行成功 --count
+    *tid_ = current_thread::get_tid();
+    count_down_latch_->count_down(); // 线程运行成功 --count
     tid_ = nullptr;                 // 不用该值
     count_down_latch_ = nullptr;    // 不用该值
-    CurrentThread::name = const_cast<char *>(name_.empty() ? "thread" : name_.c_str());
-    CurrentThread::state = CurrentThread::State::STARTING;
-    prctl(PR_SET_NAME, CurrentThread::name); // 设置当前线程名称, 在内核中, 进程与线程都是单独的
-    func_();                    //执行回调函数, 这里的回调函数是创建Thread对象传递过来的回调
-    CurrentThread::name = const_cast<char *>("finished"); // 设置当前线程名称为finish
-    CurrentThread::state = CurrentThread::State::STOPED;
+    current_thread::name = const_cast<char *>(name_.empty() ? "thread" : name_.c_str());
+    current_thread::state = current_thread::State::starting;
+    prctl(PR_SET_NAME, current_thread::name); // 设置当前线程名称, 在内核中, 进程与线程都是单独的
+    func_();                       //执行回调函数, 这里的回调函数是创建lgx::thread对象传递过来的回调
+
+    current_thread::name = const_cast<char *>("finished"); // 设置当前线程名称为finish
+    current_thread::state = current_thread::State::stopped;
 }
-
-
-

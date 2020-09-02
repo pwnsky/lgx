@@ -5,10 +5,10 @@ int main(int argv, char **argc) {
 
     if(argv < 2) {
         std::cout << "-h get more info" << std::endl;
-        return 0;
+        //return 0;
     }
 
-    Lgx::StartUp startup;
+    lgx::start_up startup;
     std::string arg = argc[1];
     if(arg == "-h" || arg == "--help") {
         std::cout << "Usage: ./lgx [OPTION...] [SECTION] PAGE...\n"
@@ -17,7 +17,7 @@ int main(int argv, char **argc) {
                      "-h, --help   help of lgx server\n"
                      ;
     }else if(arg == "-r" || arg == "--run") {
-        startup.Run(); // 启动服务
+        startup.run(); // 启动服务
     }else if(arg == "-s" || arg == "--stop") {
 
     }else if(arg == "-p" || arg == "--print") {
@@ -25,6 +25,5 @@ int main(int argv, char **argc) {
     }else {
         std::cout << "-h get more info" << std::endl;
     }
-
     return 0;
 }

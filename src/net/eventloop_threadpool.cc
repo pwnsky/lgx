@@ -1,7 +1,7 @@
 #include "eventloop_threadpool.hh"
 
 
-Net::EventLoopThreadPool::EventLoopThreadPool(EventLoop *base_eventloop, int number_of_thread) :
+lgx::net::eventloop_threadpool::eventloop_threadpool(eventloop *base_eventloop, int number_of_thread) :
     started_(false),
     base_eventloop_(base_eventloop),
     number_of_thread_(number_of_thread),
@@ -12,29 +12,24 @@ Net::EventLoopThreadPool::EventLoopThreadPool(EventLoop *base_eventloop, int num
     }
 }
 
-Net::EventLoop *Net::EventLoopThreadPool::get_next_eventloop() {
-    base_eventloop_->AssertInLoopThread();
+lgx::net::eventloop *lgx::net::eventloop_threadpool::get_next_eventloop() {
+    base_eventloop_->assert_in_loop_thread();
     assert(started_);
-    EventLoop *eventloop = base_eventloop_;
+    eventloop *eventloop = base_eventloop_;
     if(v_eventloops_.empty() == false) {
         eventloop = v_eventloops_[next_thread_indx_];
         next_thread_indx_ = (next_thread_indx_ + 1) % (number_of_thread_);
     }
-
     return eventloop;
 }
 
-Net::EventLoopThreadPool::~EventLoopThreadPool() {
-    d_cout << "~EventLoopThreadPool()\n";
-}
-
-void Net::EventLoopThreadPool::Start() {
-    base_eventloop_->AssertInLoopThread();
+void lgx::net::eventloop_threadpool::start() {
+    base_eventloop_->assert_in_loop_thread();
     started_ = true;
     for(int idx = 0; idx < number_of_thread_; ++idx) {
-        SPEventLoopThread sp_eventloop_thread(new EventLoopThread());
-        v_sp_eventloop_threads_.push_back(sp_eventloop_thread);
+        sp_eventloop_thread sp_elt(new eventloop_thread());
+        v_sp_eventloop_threads_.push_back(sp_elt);
         //store a new eventloop
-        v_eventloops_.push_back(sp_eventloop_thread->StartLoop());
+        v_eventloops_.push_back(sp_elt->start_loop());
     }
 }

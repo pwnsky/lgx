@@ -1,10 +1,10 @@
 # This is a makefile for complie lgx server
-# Create time: 2020-04-20
+# Create time: 2020-08-26
 # Author: i0gan
 
 CC      := g++ 
 TARGET  := lgx
-CFLAGS  := -O3 -std=c++11   
+CFLAGS  := -O3 -std=c++11 --static
 LDFLAGS := -lpthread
 RM := rm -f 
 CP := cp -r
@@ -18,7 +18,7 @@ INSTALL_PATH := /usr/share/lgx
 # src path
 NET_PATH    :=  ./src/net
 THREAD_PATH :=  ./src/thread
-PROCESS_PATH := ./src/process
+WORK_PATH   := ./src/work
 
 
 CRYPTO_PATH :=  ./src/crypto
@@ -42,10 +42,10 @@ THREAD_SRC := $(wildcard $(THREAD_PATH)/*.cc)
 THREAD_OBJ := $(patsubst %.cc, %.o, $(THREAD_SRC)) 
 OBJS += $(THREAD_OBJ)
 
-# process src
-PROCESS_SRC := $(wildcard $(PROCESS_PATH)/*.cc)  
-PROCESS_OBJ := $(patsubst %.cc, %.o, $(PROCESS_SRC)) 
-OBJS += $(PROCESS_OBJ)
+# work src
+WORK_SRC := $(wildcard $(WORK_PATH)/*.cc)  
+WORK_OBJ := $(patsubst %.cc, %.o, $(WORK_SRC)) 
+OBJS += $(WORK_OBJ)
 
 # crypto src
 CRYPTO_SRC := $(wildcard $(CRYPTO_PATH)/*.cc)  
@@ -59,7 +59,7 @@ $(TARGET):$(OBJS)
 	@echo -e "\033[34m\t finished \033[0m"
 
 $(OBJS):%.o:%.cc
-	$(CC) -c $^ -o $@ 
+	$(CC) -c $^ -o $@
 
 print:
 	@echo $(OBJS)	

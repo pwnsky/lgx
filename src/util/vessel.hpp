@@ -3,13 +3,14 @@
 #include <malloc.h>
 #include <string.h>
 #include <iostream>
+
 #define VESSEL_DEFAULT_SIZE 1024
 #define VESSEL_DEFAULT_ALIGN 256
+#include "../base.hh"
 
-namespace Util {
-class Vessel {
+class lgx::util::vessel {
 public:
-    Vessel() :
+    vessel() :
         sub_(false),
         size_(0),
         capacity_(align(VESSEL_DEFAULT_SIZE)),
@@ -17,7 +18,7 @@ public:
     {
         data_start_ptr = data_ptr;
     }
-    ~Vessel() {
+    ~vessel() {
         free(data_ptr);
     };
     void operator<<(std::string data) {
@@ -124,4 +125,3 @@ private:
         return  (n + 1) * VESSEL_DEFAULT_ALIGN;
     }
 };
-}

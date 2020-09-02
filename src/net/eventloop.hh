@@ -9,38 +9,35 @@
 #include <sys/epoll.h>
 #include <sys/eventfd.h>
 
-namespace Net {
-class EventLoop {
-    typedef std::function<void()> CallBack;
+class lgx::net::eventloop {
 public:
-    EventLoop();
-    ~EventLoop();
-    int CreateEventFd();
-    void Loop();
-    void Quit();
-    void RunInLoop(CallBack &&func);
-    void PushBack(CallBack &&func);
-    bool IsInLoopThread();              // 判断是否在事件循环的线程中
-    void AssertInLoopThread();          // 在线程中断言
-    void Shutdown(SPChannel sp_channel);                        // 关闭fd的写端
-    void RemoveFromEpoll(SPChannel sp_channel);                 // 移除事件
-    void UpdateEpoll(SPChannel sp_channel, int ms_timeout = 0); // 更新epoll事件
-    void AddToEpoll(SPChannel sp_channel, int ms_timeout = 0);  // 添加epoll事件
+    eventloop();
+    ~eventloop() {};
+    int create_event_fd();
+    void loop();
+    void quit();
+    void run_in_loop(lgx::util::callback &&func);
+    void push_back(lgx::util::callback &&func);
+    bool is_in_loop_thread();              // 判断是否在事件循环的线程中
+    void assert_in_loop_thread();          // 在线程中断言
+    void shutdown(sp_channel spc);                        // 关闭fd的写端
+    void remove_from_epoll(sp_channel spc);                 // 移除事件
+    void update_epoll(sp_channel spc, int ms_timeout = 0); // 更新epoll事件
+    void add_to_epoll(sp_channel spc, int ms_timeout = 0);  // 添加epoll事件
 private:
     bool looping_;
     int awake_fd_;
     bool quit_;
     bool event_handling_;
     const pid_t thread_id_;
-    SPEpoll sp_epoll_;
-    SPChannel sp_awake_channel_;           // 用于唤醒的Channel
-    mutable Thread::MutexLock mutex_lock_; // 互斥锁
-    std::vector<CallBack> pending_callback_functions_;
+    sp_epoll sp_epoll_;
+    sp_channel sp_awake_channel_;           // 用于唤醒的Channel
+    mutable lgx::thread::mutex_lock mutex_lock_; // 互斥锁
+    std::vector<lgx::util::callback> pending_callback_functions_;
     bool calling_pending_callback_function_;
 
-    void WakeUp(); //for write one byte to client
-    void RunPendingCallBackFunc();
-    void HandleRead();
-    void HandleConnect();
+    void wake_up(); //for write one byte to client
+    void run_pending_callback_func();
+    void handle_read();
+    void handle_connect();
 };
-}

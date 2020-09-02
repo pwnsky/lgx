@@ -12,15 +12,14 @@
 #include "count_down_latch.hh"
 #include "../base.hh"
 
-namespace Thread {
-namespace CurrentThread {
+namespace lgx {
+namespace thread {
+namespace current_thread {
 enum State{
-    STARTING,
-    RUNING,
-    STOPED
+    starting,
+    runing,
+    stopped
 };
-
-
 // __thread 代表每个线程会分配一个独立的空间
 extern __thread pid_t  tid;
 extern __thread State  state;
@@ -32,50 +31,48 @@ inline pid_t get_tid() {
  * #define unlikely(x) __builtin_expect(!!(x), 0) //x likely as false
  */
     // 这个表示很有可能为假, 即在编译的时候告诉编译器, 若为假, 就不用跳转, 这是在汇编代码中体现的, 主要用于优化代码, 提高执行效率
-    if(__builtin_expect(CurrentThread::tid == 0, 0)) {
-        CurrentThread::tid = ::syscall(SYS_gettid);  //get real trhead id
+    if(__builtin_expect(current_thread::tid == 0, 0)) {
+        current_thread::tid = ::syscall(SYS_gettid);  //get real trhead id
     }
-    return CurrentThread::tid;
+    return current_thread::tid;
 }
-
-}
+}}}
 
 /* 线程类
  */
-class Thread : Noncopyable {
+class lgx::thread::thread : lgx::thread::noncopyable {
 public:
-    explicit Thread(const Util::CallBack &call_back, const std::string &name = std::string());
-    ~Thread();
-    void Start();
-    int Join();
-    bool IsStarted();
+    explicit thread(const lgx::util::callback &call_back, const std::string &name = std::string());
+    ~thread();
+    void start();
+    int join();
+    bool is_started();
     pid_t get_tid;
     const std::string &get_name();
     void set_name(const std::string &name);
 
 private:
-    static void *Run(void *arg);
+    static void *run(void *arg);
     bool started_;
     bool joined_;
     pthread_t pthread_id;
     pid_t tid_;
-    Util::CallBack func_;
+    lgx::util::callback func_;
     std::string name_;
-    CountDownLatch count_down_latch_;
+    count_down_latch count_down_latch_;
 };
 
 
-class ThreadData {
+class lgx::thread::thread_data {
 public:
-    ThreadData(const Util::CallBack &func, const std::string &name,
-               pid_t *tid, CountDownLatch *count_down_latch);
-    ~ThreadData();
-    void Run();
+    thread_data(const lgx::util::callback&func, const std::string &name,
+               pid_t *tid, lgx::thread::count_down_latch *count_down_latch);
+    ~thread_data();
+    void run();
 
 private:
-    Util::CallBack func_;
+    lgx::util::callback func_;
     std::string name_;
     pid_t *tid_;
-    CountDownLatch *count_down_latch_;
+    lgx::thread::count_down_latch *count_down_latch_;
 };
-}

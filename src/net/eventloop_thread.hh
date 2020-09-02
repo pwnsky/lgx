@@ -6,20 +6,18 @@
 #include "../thread/mutex_lock.hh"
 #include "../thread/condition.hh"
 
-namespace Net {
-
-class EventLoopThread {
+class lgx::net::eventloop_thread {
 public:
-     explicit EventLoopThread();
-    ~EventLoopThread();
-    EventLoop *StartLoop();
+     explicit eventloop_thread();
+    ~eventloop_thread();
+    eventloop *start_loop();
 
 private:
-    EventLoop *eventloop_;
+    eventloop *eventloop_;
     bool exiting_;
-    Thread::Thread thread_;
-    Thread::MutexLock mutex_lock_;
-    Thread::Condition condition_;
-    void ThreadFunc();
+    lgx::thread::thread thread_;
+    lgx::thread::mutex_lock mutex_lock_;
+    lgx::thread::condition condition_;
+    void thread_func();
 };
-}
+

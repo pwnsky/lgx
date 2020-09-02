@@ -10,26 +10,23 @@
 #include <netinet/tcp.h>
 #include "../base.hh"
 #include "../util/vessel.hpp"
-//std::basic_string
-/*
- * This file is static function set
- *
-*/
 
-namespace Net {
-namespace Util {
-ssize_t Read(int fd, void *buffer, size_t length);
-ssize_t Read(int fd, std::string &in_buffer);
-ssize_t Read(int fd, std::string &in_buffer, int length);
+namespace lgx{
+namespace net {
+namespace util {
+ssize_t read(int fd, void *buffer, size_t length);
+ssize_t read(int fd, std::string &in_buffer);
+ssize_t read(int fd, std::string &in_buffer, int length);
 
-ssize_t Write(int fd, void *buffer, size_t length);
-ssize_t Write(int fd, ::Util::Vessel &out_buffer);
+ssize_t write(int fd, void *buffer, size_t length);
+ssize_t write(int fd, lgx::util::vessel &out_buffer);
 
-void IgnoreSigpipe();                 //avoid server terminate with SIGPIPE signal
-bool SetFdNonBlocking(int listen_fd); //set fd as non bloking
-void SetFdNoDelay(int fd);            //set fd no delay
-void SetFdNoLinger(int fd);           //set fd no linger
-void ShutDownWriteFd(int fd);         //shutdown fd of write
+void ignore_sigpipe();                 //avoid server terminate with SIGPIPE signal
+bool set_fd_nonblocking(int listen_fd); //set fd as non bloking
+void set_fd_nodelay(int fd);            //set fd no delay
+void set_fd_nolinger(int fd);           //set fd no linger
+void shutdown_write_fd(int fd);         //shutdown fd of write
+}
 }
 }
 

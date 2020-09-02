@@ -1,36 +1,36 @@
 #include "timer.hh"
-Net::Timer::Timer(SPHttp sp_http, int ms_timeout) :
+lgx::net::timer::timer(sp_http sph, int ms_timeout) :
     deleted_(false),
-    sp_http_(sp_http) {
+    sp_http_(sph) {
 
     struct timeval time_now;
     gettimeofday(&time_now, nullptr);
     expired_ms_time_ = (((time_now.tv_sec % 10000) * 1000) + (time_now.tv_usec / 1000)) + ms_timeout;
 }
 
-Net::Timer::Timer(Timer &timer) :
+lgx::net::timer::timer(timer &t) :
     expired_ms_time_(0),
-    sp_http_(timer.sp_http_) {
+    sp_http_(t.sp_http_) {
 }
 
 
-Net::Timer::~Timer() {
+lgx::net::timer::~timer() {
     if(sp_http_) {
-        sp_http_->HandleClose();
+        sp_http_->handle_close();
     }
 }
 
-time_t Net::Timer::GetExpiredTime() {
+time_t lgx::net::timer::get_expired_time() {
     return expired_ms_time_;
 }
 
-void Net::Timer::Update(int ms_timeout) {
+void lgx::net::timer::update(int ms_timeout) {
     struct timeval time_now;
     gettimeofday(&time_now, nullptr);
     expired_ms_time_ = (((time_now.tv_sec % 10000) * 1000) + (time_now.tv_usec / 1000)) + ms_timeout;
 }
 
-bool Net::Timer::IsValid() {
+bool lgx::net::timer::is_valid() {
     struct timeval time_now;
     gettimeofday(&time_now, nullptr);
     time_t now_ms_time = (((time_now.tv_sec % 10000) * 1000) + (time_now.tv_usec / 1000));
@@ -41,37 +41,32 @@ bool Net::Timer::IsValid() {
     }
 }
 
-void Net::Timer::Clear() {
+void lgx::net::timer::clear() {
     sp_http_.reset();
     this->set_deleted(); //set as delete will deleted by NetTimerManager::HandleExpiredEvent
 }
 
-void Net::Timer::set_deleted() {
+void lgx::net::timer::set_deleted() {
     deleted_ = true;
 }
 
-bool Net::Timer::IsDeleted() {
+bool lgx::net::timer::is_deleted() {
     return deleted_;
 }
 
-Net::TimerManager::TimerManager() {
-}
 
-Net::TimerManager::~TimerManager() {
-}
-
-void Net::TimerManager::AddTimer(std::shared_ptr<Net::Http> sp_http, int ms_timeout) {
-    SPTimer sp_net_timer(new Net::Timer(sp_http, ms_timeout));
+void lgx::net::timer_manager::add_timer(sp_http sph, int ms_timeout) {
+    sp_timer sp_net_timer(new timer(sph, ms_timeout));
     sort_sp_timer_queue.push(sp_net_timer);
-    sp_http->BindTimer(sp_net_timer); //set http to link timer
+    sph->bind_timer(sp_net_timer); //set http to link timer
 }
 
-void Net::TimerManager::HandleExpiredEvent() {
+void lgx::net::timer_manager::handle_expired_event() {
     while(!sort_sp_timer_queue.empty()) {
-        SPTimer sp_net_timer = sort_sp_timer_queue.top();
-        if(sp_net_timer->IsDeleted()) {
+        sp_timer sp_net_timer = sort_sp_timer_queue.top();
+        if(sp_net_timer->is_deleted()) {
             sort_sp_timer_queue.pop();
-        }else if (!sp_net_timer->IsValid()) {
+        }else if (!sp_net_timer->is_valid()) {
             sort_sp_timer_queue.pop();
         }else
             break;

@@ -5,16 +5,17 @@
 /*
  * 这个类的主要功能是确保在主线程运行之前确保创建的线程启动成功
  */
-namespace Thread {
-class CountDownLatch : Noncopyable {
+class lgx::thread::count_down_latch : noncopyable {
 public:
-    explicit CountDownLatch(int count);
-    ~CountDownLatch();
-    void Wait();
-    void CountDown();
+    explicit count_down_latch(int count) :
+        count_(count), mutex_(), condition_(mutex_) {
+    }
+    ~count_down_latch() {}
+
+    void wait();
+    void count_down();
 private:
     int count_;
-    mutable MutexLock mutex_;
-    Condition condition_;
+    mutable mutex_lock mutex_;
+    condition condition_;
 };
-}

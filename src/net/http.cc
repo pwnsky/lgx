@@ -1,110 +1,109 @@
 
 #include "http.hh"
 
-std::unordered_map<std::string, std::string> Net::HttpContentType::umap_type_;
-pthread_once_t Net::HttpContentType::once_control_;
+std::unordered_map<std::string, std::string> lgx::net::http_content_type::umap_type_;
+pthread_once_t lgx::net::http_content_type::once_control_;
 
 const __uint32_t EPOLL_DEFAULT_EVENT = EPOLLIN | EPOLLET | EPOLLONESHOT;
 const int DEFAULT_EXPIRED_TIME = 2000;              //ms
 const int DEFAULT_KEEP_ALIVE_TIME = 5 * 60 * 1000;  //ms
 
-void Net::HttpContentType::Init() {
-    std::cout << "ptrhead_init";
+void lgx::net::http_content_type::init() {
+    //std::cout << "ptrhead_init";
     //init http content type
-    HttpContentType::umap_type_[".html"] = "text/html";
-    HttpContentType::umap_type_[".css"] = "text/css";
-    HttpContentType::umap_type_[".js"] = "application/x-javascript";
-    HttpContentType::umap_type_[".woff"] = "application/font-woff";
-    HttpContentType::umap_type_[".woff2"] = "application/font-woff2";
-    HttpContentType::umap_type_[".avi"] = "video/x-msvideo";
-    HttpContentType::umap_type_[".bmp"] = "image/bmp";
-    HttpContentType::umap_type_[".c"] = "text/plain";
-    HttpContentType::umap_type_[".doc"] = "application/msword";
-    HttpContentType::umap_type_[".gif"] = "image/gif";
-    HttpContentType::umap_type_[".gz"] = "application/x-gzip";
-    HttpContentType::umap_type_[".htm"] = "text/html";
-    HttpContentType::umap_type_[".ico"] = "image/x-icon";
-    HttpContentType::umap_type_[".jpg"] = "image/jpeg";
-    HttpContentType::umap_type_[".png"] = "image/png";
-    HttpContentType::umap_type_[".txt"] = "text/plain";
-    HttpContentType::umap_type_[".mp3"] = "audio/mp3";
-    HttpContentType::umap_type_[".json"] = "application/json";
-    HttpContentType::umap_type_["default"] = "obj";
+    http_content_type::umap_type_[".html"] = "text/html";
+    http_content_type::umap_type_[".css"] = "text/css";
+    http_content_type::umap_type_[".js"] = "application/x-javascript";
+    http_content_type::umap_type_[".woff"] = "application/font-woff";
+    http_content_type::umap_type_[".woff2"] = "application/font-woff2";
+    http_content_type::umap_type_[".avi"] = "video/x-msvideo";
+    http_content_type::umap_type_[".bmp"] = "image/bmp";
+    http_content_type::umap_type_[".c"] = "text/plain";
+    http_content_type::umap_type_[".doc"] = "application/msword";
+    http_content_type::umap_type_[".gif"] = "image/gif";
+    http_content_type::umap_type_[".gz"] = "application/x-gzip";
+    http_content_type::umap_type_[".htm"] = "text/html";
+    http_content_type::umap_type_[".ico"] = "image/x-icon";
+    http_content_type::umap_type_[".jpg"] = "image/jpeg";
+    http_content_type::umap_type_[".png"] = "image/png";
+    http_content_type::umap_type_[".txt"] = "text/plain";
+    http_content_type::umap_type_[".mp3"] = "audio/mp3";
+    http_content_type::umap_type_[".json"] = "application/json";
+    http_content_type::umap_type_["default"] = "obj";
 }
 
-std::string Net::HttpContentType::GetType(const std::string name) {
-    pthread_once(&HttpContentType::once_control_, HttpContentType::Init);
+std::string lgx::net::http_content_type::get_type(const std::string name) {
+    ::pthread_once(&http_content_type::once_control_, http_content_type::init);
     if(umap_type_.find(name) == umap_type_.end())
         return umap_type_["default"];
     else
         return umap_type_[name];
 }
 
-Net::Http::Http(int fd,EventLoop *eventloop) :
+lgx::net::http::http(int fd,eventloop *elp) :
     fd_(fd),
-    eventloop_(eventloop),
-    sp_channel_(new Channel(eventloop, fd)),
+    eventloop_(elp),
+    sp_channel_(new channel(elp, fd)),
     recv_error_(false),
     http_connection_state_(HttpConnectionState::CONNECTED),
     http_process_state_(HttpRecvState::PARSE_HEADER),
     keep_alive_(false) {
-
     //set callback function handler
-    sp_channel_->set_read_handler(std::bind(&Http::HandleRead, this));
-    sp_channel_->set_write_handler(std::bind(&Http::HandleWrite, this));
-    sp_channel_->set_connected_handler(std::bind(&Http::HandleConnect, this));
+    sp_channel_->set_read_handler(std::bind(&http::handle_read, this));
+    sp_channel_->set_write_handler(std::bind(&http::handle_write, this));
+    sp_channel_->set_connected_handler(std::bind(&http::handle_connect, this));
 }
-Net::Http::~Http() {
+lgx::net::http::~http() {
     close(fd_);
 }
 
-void Net::Http::Reset() {
+void lgx::net::http::reset() {
     http_process_state_ = HttpRecvState::PARSE_HEADER;
     in_content_buffer_.clear();
     in_buffer_.clear();
     map_header_info_.clear();
     recv_error_ = false;
     if(wp_timer_.lock()) {
-        SPTimer sp_net_timer(wp_timer_.lock());
-        sp_net_timer->Clear();
+        sp_timer sp_net_timer(wp_timer_.lock());
+        sp_net_timer->clear();
         wp_timer_.reset();
     }
 }
 
-void Net::Http::HandleClose() {
+void lgx::net::http::handle_close() {
     http_connection_state_ = HttpConnectionState::DISCONNECTED;
-    SPHttp guard(shared_from_this()); // avoid delete
-    eventloop_->RemoveFromEpoll(sp_channel_);
+    sp_http guard(shared_from_this()); // avoid delete
+    eventloop_->remove_from_epoll(sp_channel_);
 }
 
-void Net::Http::NewEvnet() {
+void lgx::net::http::new_evnet() {
     sp_channel_->set_event(EPOLL_DEFAULT_EVENT);
-    eventloop_->AddToEpoll(sp_channel_, DEFAULT_EXPIRED_TIME);
+    eventloop_->add_to_epoll(sp_channel_, DEFAULT_EXPIRED_TIME);
 }
 
-void Net::Http::BindTimer(SPTimer sp_timer) {
-    wp_timer_ = sp_timer;
+void lgx::net::http::bind_timer(sp_timer spt) {
+    wp_timer_ = spt;
 }
 
-Net::SPChannel Net::Http::get_sp_channel() {
+lgx::net::sp_channel lgx::net::http::get_sp_channel() {
     return sp_channel_;
 }
 
-Net::EventLoop *Net::Http::get_eventloop() {
+lgx::net::eventloop *lgx::net::http::get_eventloop() {
     return eventloop_;
 }
 
-void Net::Http::UnbindTimer() {
+void lgx::net::http::unbind_timer() {
     if(wp_timer_.lock()) {
-        SPTimer sp_net_timer(wp_timer_.lock());
-        sp_net_timer->Clear();
+        sp_timer sp_net_timer(wp_timer_.lock());
+        sp_net_timer->clear();
         wp_timer_.reset();
     }
 }
-void Net::Http::HandleRead() {
+void lgx::net::http::handle_read() {
     __uint32_t &event = sp_channel_->get_event();
     do {
-        int read_len = Util::Read(fd_, in_buffer_);
+        int read_len = lgx::net::util::read(fd_, in_buffer_);
         //std::cout << "http_content:__[" << in_buffer_ << "]__";
         //if state as disconnecting will clean th in buffer
         if(http_connection_state_ == HttpConnectionState::DISCONNECTING) {
@@ -120,21 +119,21 @@ void Net::Http::HandleRead() {
         }else if(read_len < 0) { // Read data error
             perror("ReadData ");
             recv_error_ = true;
-            HandleError((int)HttpResponseCode::BAD_REQUEST, "Bad Request");
+            handle_error((int)HttpResponseCode::BAD_REQUEST, "Bad Request");
         }
 
         // Parse http header
         if(http_process_state_ == HttpRecvState::PARSE_HEADER) {
-            HttpParseHeaderResult http_parse_header_result = ParseHeader();
+            HttpParseHeaderResult http_parse_header_result = parse_header();
             if(http_parse_header_result == HttpParseHeaderResult::ERROR) {
                 perror("ParseHeader ");
                 recv_error_ = true;
-                HandleError((int)HttpResponseCode::BAD_REQUEST, "Bad Request");
+                handle_error((int)HttpResponseCode::BAD_REQUEST, "Bad Request");
                 break;
             }
             // Judget if have content data
             //std::cout << "method: " << map_header_info_["method"] << '\n';
-            http_process_state_ = HttpRecvState::PROCESS;
+            http_process_state_ = HttpRecvState::WORK;
             if(map_header_info_["method"] == "post") {
                 content_length_ = 0;
                 if(map_header_info_.find("content-length") != map_header_info_.end()) {
@@ -142,13 +141,13 @@ void Net::Http::HandleRead() {
                 } else {
                     std::cout << "not found contnt-length\n";
                     recv_error_ = true;
-                    HandleError((int)HttpResponseCode::BAD_REQUEST, "Bad Request");
+                    handle_error((int)HttpResponseCode::BAD_REQUEST, "Bad Request");
                     break;
                 }
                 if(content_length_ < 0) {
                     std::cout << "not found contnt-length\n";
                     recv_error_ = true;
-                    HandleError((int)HttpResponseCode::BAD_REQUEST, "Bad Request");
+                    handle_error((int)HttpResponseCode::BAD_REQUEST, "Bad Request");
                     break;
                 }
                 //std::cout << "have body data: Cotent-length: " << content_length_ << '\n';
@@ -163,12 +162,12 @@ void Net::Http::HandleRead() {
             in_content_buffer_ += in_buffer_;
             if(!recv_error_ && static_cast<int>(in_content_buffer_.size()) >= content_length_) {
                 //std::cout << "content: __[[" << in_content_buffer_ << "]]__";
-                http_process_state_ = HttpRecvState::PROCESS;
+                http_process_state_ = HttpRecvState::WORK;
             }
         }
 
-        if(http_process_state_ == HttpRecvState::PROCESS) {
-            HandleProcess();
+        if(http_process_state_ == HttpRecvState::WORK) {
+            handle_work();
             in_buffer_.clear();
             http_process_state_ = HttpRecvState::FINISH;
         }
@@ -176,20 +175,20 @@ void Net::Http::HandleRead() {
 
     if(recv_error_) {
         //std::cout << "error\n";
-        this->Reset();
+        this->reset();
     }
     // end
     if(http_process_state_ == HttpRecvState::FINISH) {
-        this->Reset();
+        this->reset();
     //if network is disconnected, do not to clean write data buffer, may be it reconnected
     } else if (!recv_error_ && http_connection_state_ == HttpConnectionState::DISCONNECTED) {
         event |= EPOLLIN;
     }
 }
 
-Net::HttpParseHeaderResult Net::Http::ParseHeader() {
+lgx::net::HttpParseHeaderResult lgx::net::http::parse_header() {
     std::string &recv_data = in_buffer_;
-    Net::HttpParseHeaderResult  result = HttpParseHeaderResult::SUCCESS;
+    lgx::net::HttpParseHeaderResult  result = HttpParseHeaderResult::SUCCESS;
 
     int first_line_read_pos = 0;
     do {
@@ -284,8 +283,8 @@ Net::HttpParseHeaderResult Net::Http::ParseHeader() {
         std::string key = one_line.substr(0, value_start_pos);
         std::string value = one_line.substr(value_start_pos + 2);
         // set as lower
-        StrLower(key);
-        StrLower(value);
+        str_lower(key);
+        str_lower(value);
 
         map_header_info_[key] = value;
     }
@@ -293,15 +292,15 @@ Net::HttpParseHeaderResult Net::Http::ParseHeader() {
     return result;
 }
 
-void Net::Http::HandleProcess() {
-    Process::Center center(map_header_info_, in_content_buffer_);
-    center.set_fd(fd_);
-    center.set_send_data_handler(std::bind(&Http::SendData, this, std::placeholders::_1, std::placeholders::_2));
-    center.set_send_file_handler(std::bind(&Http::SendFile, this, std::placeholders::_1));
-    center.Process();
+void lgx::net::http::handle_work() {
+    lgx::work::work w(map_header_info_, in_content_buffer_);
+    w.set_fd(fd_);
+    w.set_send_data_handler(std::bind(&http::send_data, this, std::placeholders::_1, std::placeholders::_2));
+    w.set_send_file_handler(std::bind(&http::send_file, this, std::placeholders::_1));
+    w.run();
 }
 
-void Net::Http::HandleWrite() {
+void lgx::net::http::handle_write() {
     //std::cout << "write: \n";
     __uint32_t &event = sp_channel_->get_event();
     if(http_connection_state_ == HttpConnectionState::DISCONNECTED) {
@@ -309,7 +308,7 @@ void Net::Http::HandleWrite() {
     }
     //std::cout << "write size: " << out_buffer_.size() << "] end\n";
     if(out_buffer_.size() > 0) {
-        if(Util::Write(fd_, out_buffer_) < 0) {
+        if(util::write(fd_, out_buffer_) < 0) {
             perror("write header data");
             sp_channel_->set_event(0);
             out_buffer_.clear();
@@ -322,7 +321,7 @@ void Net::Http::HandleWrite() {
     }
 }
 
-std::string Net::Http::GetSuffix(std::string file_name) {
+std::string lgx::net::http::get_suffix(std::string file_name) {
     std::string suffix = file_name;
     while (true) {
         int suffix_pos = suffix.find('.');
@@ -334,7 +333,7 @@ std::string Net::Http::GetSuffix(std::string file_name) {
     return suffix;
 }
 
-void Net::Http::SendData(const std::string &type,const std::string &content) {
+void lgx::net::http::send_data(const std::string &type,const std::string &content) {
     out_buffer_.clear();
     out_buffer_ << "HTTP/1.1 200 OK\r\n";
     if (map_header_info_.find("connection") != map_header_info_.end() &&
@@ -345,15 +344,15 @@ void Net::Http::SendData(const std::string &type,const std::string &content) {
     }
     out_buffer_ << "Server: " + std::string(SERVER_NAME) + "\r\n";
     out_buffer_ << "Access-Control-Allow-Origin: *\r\n";
-    out_buffer_ << "Content-Type: " + HttpContentType::GetType(type) + "\r\n";
+    out_buffer_ << "Content-Type: " + http_content_type::get_type(type) + "\r\n";
     out_buffer_ << "Content-Length: " +  std::to_string(content.size()) + "\r\n";
     out_buffer_ << "\r\n";
     out_buffer_ << content;
-    HandleWrite();
+    handle_write();
 }
 
 // Send file
-void Net::Http::SendFile(const std::string &file_name) {
+void lgx::net::http::send_file(const std::string &file_name) {
     do {
         if(recv_error_ || http_connection_state_ == HttpConnectionState::DISCONNECTED) {
             break;;
@@ -361,19 +360,19 @@ void Net::Http::SendFile(const std::string &file_name) {
         int fd = open(file_name.c_str(), O_RDONLY);
         if(fd == -1) {
             std::cout << "Open file [" << file_name << "] failed!\n";
-            HandleError((int)HttpResponseCode::NOT_FOUND, "Not found!");
+            handle_error((int)HttpResponseCode::NOT_FOUND, "Not found!");
             break;
         }
         struct stat stat_buf;
         if(fstat(fd, &stat_buf) == -1) {
-            HandleError((int)HttpResponseCode::SEE_OTHER, "Internal server error");
+            handle_error((int)HttpResponseCode::SEE_OTHER, "Internal server error");
             close(fd);
             break;;
         }
 
         // Check this file if as dir, if do not this, when mmap to read data, server will crashed!
         if(S_ISDIR(stat_buf.st_mode)) {
-            HandleError((int)HttpResponseCode::SEE_OTHER, "Error: dir can't get");
+            handle_error((int)HttpResponseCode::SEE_OTHER, "Error: dir can't get");
             close(fd);
             break;
         }
@@ -388,7 +387,7 @@ void Net::Http::SendFile(const std::string &file_name) {
         }
         out_buffer_ << "Server: "  + std::string(SERVER_NAME) + "\r\n";
         out_buffer_ << "Access-Control-Allow-Origin: *\r\n";
-        out_buffer_ << "Content-Type: " + HttpContentType::GetType(GetSuffix(file_name)) + "\r\n";
+        out_buffer_ << "Content-Type: " + http_content_type::get_type(get_suffix(file_name)) + "\r\n";
         out_buffer_ << "Content-Length: " +  std::to_string(stat_buf.st_size) + "\r\n";
         out_buffer_ << "\r\n";
         // write header
@@ -397,20 +396,20 @@ void Net::Http::SendFile(const std::string &file_name) {
         if(stat_buf.st_size < (1024 * 1024 * 100)) {
             out_buffer_.append(file_mmap_ptr, stat_buf.st_size);
             //wait
-            HandleWrite();
+            handle_write();
             munmap(file_mmap_ptr, stat_buf.st_size);
             close(fd);
             break;
         }
-        HandleError((int)HttpResponseCode::SEE_OTHER, "This file too big");
+        handle_error((int)HttpResponseCode::SEE_OTHER, "This file too big");
     } while(false);
 }
 
 // 处理连接
-void Net::Http::HandleConnect() {
+void lgx::net::http::handle_connect() {
     int ms_timeout = 0;
     __uint32_t &event = sp_channel_->get_event();
-    UnbindTimer(); //解除计时器, 避免有两个计时器监视
+    unbind_timer(); //解除计时器, 避免有两个计时器监视
 
     if(!recv_error_ && http_connection_state_ == HttpConnectionState::CONNECTED) {
         if(event != 0) {
@@ -430,16 +429,16 @@ void Net::Http::HandleConnect() {
             event |= (EPOLLIN | EPOLLET);
             ms_timeout = DEFAULT_KEEP_ALIVE_TIME >> 2;
         }
-        eventloop_->UpdateEpoll(sp_channel_, ms_timeout);
+        eventloop_->update_epoll(sp_channel_, ms_timeout);
     } else if (!recv_error_ && http_connection_state_ == HttpConnectionState::DISCONNECTING
                && (event & EPOLLOUT)) {
         event = (EPOLLOUT | EPOLLET);
     } else {
-        eventloop_->RunInLoop(std::bind(&Http::HandleClose, shared_from_this()));
+        eventloop_->run_in_loop(std::bind(&http::handle_close, shared_from_this()));
     }
 }
 
-void Net::Http::HandleError(int error_number, std::string message) {
+void lgx::net::http::handle_error(int error_number, std::string message) {
     out_buffer_.clear();
     message = " " + message;
     std::string header_buffer, body_buffer;
@@ -456,10 +455,10 @@ void Net::Http::HandleError(int error_number, std::string message) {
     header_buffer += "\r\n";
     out_buffer_ << header_buffer;
     out_buffer_ << body_buffer;
-    HandleWrite();
+    handle_write();
 }
 
-void Net::Http::StrLower(std::string &str) {
+void lgx::net::http::str_lower(std::string &str) {
     for (size_t index = 0; index < str.size(); ++index) {
         str[index] = tolower(str[index]);
     }

@@ -14,15 +14,16 @@
 #include "net/eventloop.hh"
 #include "base.hh"
 
-class Lgx::StartUp final{
+class lgx::start_up final{
 public:
-     StartUp();
-    ~StartUp();
-    bool Run();
-    bool Stop();
-    bool LoadConfig();
-    bool RunLoggerModule();
-    bool RunNetworkModule();
+     start_up();
+    ~start_up();
+    bool run();
+    bool stop();
+    bool load_config();
+    bool run_logger_module();
+    bool run_network_module();
+    void show_logo();
 
 private:
     int number_of_thread_;

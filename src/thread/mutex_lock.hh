@@ -2,16 +2,12 @@
 #include "noncopyable.hh"
 #include <pthread.h>
 
-namespace Thread {
-
-// 互斥锁机制: 用来保证在任一时刻，只能有一个线程访问该对象
-
-class MutexLock : Noncopyable {
+class lgx::thread::mutex_lock : noncopyable {
 public:
-    MutexLock();
-    ~MutexLock();
-    void Lock(); // 给该
-    void Unlock();
+    mutex_lock();
+    ~mutex_lock();
+    void lock();
+    void unlock();
     pthread_mutex_t *get_mutex();
 private:
     pthread_mutex_t mutex_ = PTHREAD_MUTEX_INITIALIZER;
@@ -19,16 +15,11 @@ private:
     friend class Condition;
 };
 
-/*
- * MutexLockGuard 封装了 MutexLock, 使用更加方便
- *
- */
-class MutexLockGuard : Noncopyable {
+class lgx::thread::mutex_lock_guard : lgx::thread::noncopyable {
 public:
-    explicit MutexLockGuard(MutexLock &mutex_lock);
-    ~MutexLockGuard();
+    explicit mutex_lock_guard(mutex_lock &ml);
+    ~mutex_lock_guard();
 private:
-    MutexLock &mutex_lock_;
+    mutex_lock &mutex_lock_;
 };
-}
 

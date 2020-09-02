@@ -1,115 +1,115 @@
 #include "channel.hh"
 
-Net::Channel::Channel(EventLoop *eventloop) {
-    eventloop_ = eventloop;
+lgx::net::channel::channel(eventloop *elp) {
+    elp_ = elp;
 }
-Net::Channel::Channel(EventLoop *eventloop, int fd) {
-    eventloop_ = eventloop;
+
+lgx::net::channel::channel(eventloop *elp, int fd) {
+    elp_ = elp;
     fd_ = fd;
 }
 
-Net::Channel::~Channel() {
+lgx::net::channel::~channel() {
 
 }
 
-void Net::Channel::set_fd(int fd) {
+void lgx::net::channel::set_fd(int fd) {
     fd_ = fd;
 }
 
-int Net::Channel::get_fd() {
+int lgx::net::channel::get_fd() {
     return fd_;
 }
 
-void Net::Channel::set_holder(SPHttp sp_http) {
-    holder_ = sp_http;
+void lgx::net::channel::set_holder(sp_http sph) {
+    holder_ = sph;
 }
 
-Net::SPHttp Net::Channel::get_holder() {
-    Net::SPHttp ret = holder_.lock();
+lgx::net::sp_http lgx::net::channel::get_holder() {
+    sp_http ret = holder_.lock();
     return ret;
 }
 
-void Net::Channel::HandleRead() {
+void lgx::net::channel::handle_read() {
     if(read_handler_) {
         read_handler_();
     }
 }
 
-void Net::Channel::HandleWrite() {
+void lgx::net::channel::handle_write() {
     if(write_handler_) {
         write_handler_();
     }
 }
 
-void Net::Channel::HandleConnect() {
+void lgx::net::channel::handle_connect() {
     if(connected_handler_) {
         connected_handler_();
     }
 }
-void Net::Channel::HandleError() {
+void lgx::net::channel::handle_error() {
     if(error_handler_) {
         error_handler_();
     }
 }
 
-void Net::Channel::HandleEvent() {
+void lgx::net::channel::handle_event() {
     event_ = 0;
     if((revent_ & EPOLLHUP) && !(revent_ & EPOLLIN)) {
         event_ = 0;
         return;
     }
     if(revent_ & EPOLLERR) {
-        if(error_handler_) HandleError();
+        if(error_handler_) handle_error();
         event_ = 0;
         return ;
     }
     if(revent_ & (EPOLLIN | EPOLLPRI | EPOLLRDHUP)) {
-        HandleRead();
+        handle_read();
     }
     if(revent_ & EPOLLOUT) {
-        HandleWrite();
+        handle_write();
     }
     //*******
-    HandleConnect();
+    handle_connect();
 }
 
-void Net::Channel::set_revent(__uint32_t revent) {
+void lgx::net::channel::set_revent(__uint32_t revent) {
     revent_ = revent;
 }
-void Net::Channel::set_event(__uint32_t event) {
+void lgx::net::channel::set_event(__uint32_t event) {
     event_ = event;
 }
 
-void Net::Channel::set_read_handler(::Util::CallBack  &&read_handler) {
+void lgx::net::channel::set_read_handler(lgx::util::callback  &&read_handler) {
     read_handler_ = read_handler;
 }
 
-void Net::Channel::set_write_handler(::Util::CallBack  &&write_handler) {
+void lgx::net::channel::set_write_handler(lgx::util::callback  &&write_handler) {
     write_handler_ = write_handler;
 }
 
-void Net::Channel::set_error_handler(::Util::CallBack  &&error_handler) {
+void lgx::net::channel::set_error_handler(lgx::util::callback  &&error_handler) {
     error_handler_ = error_handler;
 }
 
 // For deal with connected client event
-void Net::Channel::set_connected_handler(::Util::CallBack  &&connected_handler) {
+void lgx::net::channel::set_connected_handler(lgx::util::callback  &&connected_handler) {
     connected_handler_ = connected_handler;
 }
 
-__uint32_t &Net::Channel::get_event() {
+__uint32_t &lgx::net::channel::get_event() {
     return event_;
 }
 
-__uint32_t Net::Channel::get_last_event() {
+__uint32_t lgx::net::channel::get_last_event() {
     return last_event_;
 }
 
-void Net::Channel::UpdateLastEvnet() {
+void lgx::net::channel::update_last_evnet() {
     last_event_ = event_;
 }
 
-bool Net::Channel::IsLastEvent() {
+bool lgx::net::channel::is_last_event() {
     return last_event_ == event_;
 }
-

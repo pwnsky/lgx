@@ -4,19 +4,17 @@
 #include "eventloop.hh"
 #include "eventloop_thread.hh"
 
-namespace Net {
-class EventLoopThreadPool {
+class lgx::net::eventloop_threadpool {
 public:
-    EventLoopThreadPool(EventLoop *base_eventloop, int number_of_thread);
-    ~EventLoopThreadPool();
-    void Start();
-    EventLoop *get_next_eventloop();
+    eventloop_threadpool(eventloop *base_eventloop, int number_of_thread);
+    ~eventloop_threadpool() {};
+    void start();
+    eventloop *get_next_eventloop();
 private:
     bool started_;
-    EventLoop *base_eventloop_;
+    eventloop *base_eventloop_;
     int number_of_thread_;
     int next_thread_indx_;
-    std::vector<EventLoop *> v_eventloops_;
-    std::vector<SPEventLoopThread> v_sp_eventloop_threads_;
+    std::vector<eventloop *> v_eventloops_;
+    std::vector<sp_eventloop_thread> v_sp_eventloop_threads_;
 };
-}

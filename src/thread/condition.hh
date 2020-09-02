@@ -6,21 +6,17 @@
 #include "../base.hh"
 #include "noncopyable.hh"
 #include "mutex_lock.hh"
-/*
- * Realize the synchronization mechanism through Condition class
- */
 
-namespace Thread {
-class Condition : Noncopyable {
+class lgx::thread::condition : noncopyable {
   public:
-    explicit Condition(MutexLock &mutex_lock);
-    ~Condition();
-    void Wait();
-    void Signal();
-    void Broadcast();
-    bool WaitForSeconds(int seconds);
+    explicit condition(mutex_lock &ml);
+    ~condition();
+    void wait();
+    void signal();
+    void broadcast();
+    bool wait_for_seconds(int seconds);
 private:
-    MutexLock &mutex_;
+    mutex_lock &mutex_;
     pthread_cond_t cond_ = PTHREAD_COND_INITIALIZER;
 };
-}
+

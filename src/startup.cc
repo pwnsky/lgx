@@ -1,29 +1,38 @@
 #include "startup.hh"
 
-extern std::string Data::root_path;
-extern std::string Data::web_page;
-extern std::string Data::web_404_page;
+extern std::string lgx::data::root_path;
+extern std::string lgx::data::web_page;
+extern std::string lgx::data::web_404_page;
 
-Lgx::StartUp::StartUp() {
+lgx::start_up::start_up() {
+
 }
 
-Lgx::StartUp::~StartUp() {
+lgx::start_up::~start_up() {
+
 }
-bool Lgx::StartUp::Run() {
+void lgx::start_up::show_logo() {
+    std::cout << "\033[40;30m _     ______  __\n\033[0m"
+                 "\033[40;31m| |   / ___\\ \\/ /\n\033[0m"
+                 "\033[40;32m| |  | |  _ \\  / \n\033[0m"
+                 "\033[40;33m| |__| |_| |/  \\ \n\033[0m"
+                 "\033[40;34m|_____\\____/_/\\_\\\n\033[0m";
+}
+bool lgx::start_up::run() {
     //setbuf(stdout, nullptr);
-    if(LoadConfig() == false) {
+    show_logo();
+    if(load_config() == false) {
         std::cout << "Load config file failed!\n" << std::endl;
         abort();
     }
 
-    //std::cout << "global_mysql_ptr" << global_mysql_ptr << '\n';
-    if(RunLoggerModule() == false) {
+    if(run_logger_module() == false) {
         std::cout << "Run logger module failed" << std::endl;
         abort();
     }
 
     std::cout << "tcp port: " << port_ << "  number of thread: " << number_of_thread_ << '\n';
-    if(false == this->RunNetworkModule()) {
+    if(false == this->run_network_module()) {
         std::cout << "Run network module failed!\n";
         abort();
     }
@@ -31,7 +40,7 @@ bool Lgx::StartUp::Run() {
 }
 
 // Load config file
-bool Lgx::StartUp::LoadConfig() {
+bool lgx::start_up::load_config() {
     std::string file_json;
     FILE* config_file_ptr = fopen(DEFAULT_CONFIG_FILE, "r");
     while(!feof(config_file_ptr)) {
@@ -42,10 +51,10 @@ bool Lgx::StartUp::LoadConfig() {
 
     fclose(config_file_ptr);
     //std::cout << "json [" << file_json << "]\n";
-    Third::Json obj;
+    lgx::third::json obj;
     try{
-        obj = Third::Json::parse(file_json);
-    } catch(Third::Json::parse_error &e) {
+        obj = lgx::third::json::parse(file_json);
+    } catch(third::json::parse_error &e) {
         d_cout << e.what() << '\n';
         return false;
     }
@@ -53,21 +62,21 @@ bool Lgx::StartUp::LoadConfig() {
     try {
         port_ = obj["port"];
         number_of_thread_ = obj["number_of_thread"];
-        Data::root_path = obj["root_path"];
-        Data::web_page = obj["web_page"];
-        Data::web_404_page = obj["web_404_page"];
-    }  catch (Third::Json::exception &e) {
+        lgx::data::root_path = obj["root_path"];
+        lgx::data::web_page = obj["web_page"];
+        lgx::data::web_404_page = obj["web_404_page"];
+    }  catch (lgx::third::json::exception &e) {
         d_cout << e.what() << '\n';
         abort();
     }
     return true;
 }
-bool Lgx::StartUp::RunNetworkModule() {
-    Net::Net net(port_, number_of_thread_);
-    net.Start();
+bool lgx::start_up::run_network_module() {
+    lgx::net::net net(port_, number_of_thread_);
+    net.start();
     return true;
 }
 
-bool Lgx::StartUp::RunLoggerModule() {
+bool lgx::start_up::run_logger_module() {
     return true;
 }

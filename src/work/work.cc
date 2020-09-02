@@ -1,40 +1,39 @@
-#include "center.hh"
+#include "work.hh"
 
-std::string Data::root_path;
-std::string Data::web_page;
-std::string Data::web_404_page;
+std::string lgx::data::root_path;
+std::string lgx::data::web_page;
+std::string lgx::data::web_404_page;
 
-Process::Center::Center(const std::map<std::string, std::string> &map_header_info, std::string &content) :
+lgx::work::work::work(const std::map<std::string, std::string> &map_header_info, std::string &content) :
     map_header_info_(map_header_info),
     content_(content),
     send_file_handler_(nullptr),
     send_data_handler_(nullptr){
+}
+
+lgx::work::work::~work() {
 
 }
 
-Process::Center::~Center() {
-
-}
-
-void Process::Center::set_fd(int fd) {
+void lgx::work::work::set_fd(int fd) {
     fd_ = fd;
 }
-void Process::Center::set_send_file_handler(Util::CallBack1 send_file_handler) {
+void lgx::work::work::set_send_file_handler(lgx::util::callback1 send_file_handler) {
     send_file_handler_ = send_file_handler;
 }
 
-void Process::Center::set_send_data_handler(Util::CallBack2 send_data_handler) {
+void lgx::work::work::set_send_data_handler(lgx::util::callback2 send_data_handler) {
     send_data_handler_ = send_data_handler;
 }
 
-void Process::Center::Process() {
+void lgx::work::work::run() {
     std::string http_method;
     try {
         http_method = map_header_info_.at("method");
     } catch (std::out_of_range e) { std::cout << "no method\n"; }
 
-    if(ParseUrl() == false) {
-        Response(ResponseCode::ERROR_PARSING_URL);
+    if(parse_url() == false) {
+        response(ResponseCode::ERROR_PARSING_URL);
         return;
     }
     try {
@@ -44,26 +43,26 @@ void Process::Center::Process() {
 
     //std::cout << "method: "<< http_method << " url:[" << map_url_info_["url"] << "]\n";
     if(http_method == "get") {
-        HandleGet();
+        handle_get();
     }else if(http_method == "put") {
 
     }else if(http_method == "post") {
-        HandlePost();
+        handle_post();
     }
 }
 
-void Process::Center::HandleGet() {
+void lgx::work::work::handle_get() {
     bool error = false;
     std::string path = map_url_info_["path"];
     do {
         if(path == "/" && platform_.empty()) {
-            path = Data::root_path + "/" + Data::web_page;
-            SendFile(path);
+            path = lgx::data::root_path + "/" + lgx::data::web_page;
+            send_file(path);
             break;
         }else {
             try {
-                path = Data::root_path + "/" + map_url_info_.at("path");
-                SendFile(path);
+                path = lgx::data::root_path + "/" + map_url_info_.at("path");
+                send_file(path);
             }  catch (std::out_of_range e) {
                 std::cout << "map_header_info_[url]" << e.what() << '\n';
                 error = true;
@@ -74,16 +73,15 @@ void Process::Center::HandleGet() {
     // Send get file
     if(error) {
         std::cout << "error\n";
-        HandleNotFound();
+        handle_not_found();
     }
 }
 
-void Process::Center::HandlePost() {
-
+void lgx::work::work::handle_post() {
 
 }
 
-bool Process::Center::ParseUrl() {
+bool lgx::work::work::parse_url() {
     std::string url;
     std::string value_url;
     std::string path;
@@ -129,38 +127,38 @@ bool Process::Center::ParseUrl() {
     return true;
 }
 
-void Process::Center::SendFile(std::string file_name) {
+void lgx::work::work::send_file(std::string file_name) {
     if(send_file_handler_)
         send_file_handler_(file_name);
 }
 
-void Process::Center::SendData(const std::string &suffix, const std::string &content) {
+void lgx::work::work::send_data(const std::string &suffix, const std::string &content) {
     if(send_data_handler_)
         send_data_handler_(suffix, content);
 }
 
-void Process::Center::HandleNotFound() {
-    SendFile(Data::web_404_page);
+void lgx::work::work::handle_not_found() {
+    send_file(lgx::data::web_404_page);
 }
 
-void Process::Center::Response(ResponseCode code) {
-    Json json_obj = {
+void lgx::work::work::response(ResponseCode code) {
+    json json_obj = {
         { "server", SERVER_NAME },
         { "request", request_ },
         { "code", code },
-        { "datetime" , GetDateTime() }
+        { "datetime" , get_date_time() }
     };
-    SendJson(json_obj);
+    send_json(json_obj);
 }
 
-void Process::Center::SendJson(Json &json_obj) {
+void lgx::work::work::send_json(json &json_obj) {
     std::ostringstream json_sstream;
     json_sstream << json_obj;
     std::string data = json_sstream.str();
-    SendData(".json", data);
+    send_data(".json", data);
 }
 
-std::string Process::Center::GetDateTime() {
+std::string lgx::work::work::get_date_time() {
     char time_str[128] = {0};
     struct timeval tv;
     time_t time;

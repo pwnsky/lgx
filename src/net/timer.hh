@@ -9,43 +9,38 @@
 #include "../base.hh"
 #include "http.hh"
 
-/*
- *  Network Timer Class set
- */
-
-namespace Net {
-class Timer {
+class lgx::net::timer {
 public:
-    Timer(SPHttp sp_http, int ms_timeout);
-    Timer(Timer &timer);
-    ~Timer();
-    void Update(int ms_timeout);
-    bool IsValid();
-    void Clear();
+    timer(sp_http sph, int ms_timeout);
+    timer(timer &t);
+    ~timer();
+    void update(int ms_timeout);
+    bool is_valid();
+    void clear();
     void set_deleted();
-    bool IsDeleted();
-    time_t GetExpiredTime();
+    bool is_deleted();
+    time_t get_expired_time();
 private:
     bool deleted_;
     time_t expired_ms_time_;
-    SPHttp sp_http_;
+    sp_http sp_http_;
 };
 
-class TimerCompare {
+class lgx::net::timer_compare {
 public:
-    bool operator()(SPTimer &sp_timer_1, SPTimer &sp_timer_2) const {
-        return sp_timer_1->GetExpiredTime() > sp_timer_2->GetExpiredTime();
+    bool operator()(sp_timer &sp_timer_1, sp_timer &sp_timer_2) const {
+        return sp_timer_1->get_expired_time() > sp_timer_2->get_expired_time();
     }
 };
 
-class TimerManager {
+class lgx::net::timer_manager {
 public:
-    explicit TimerManager();
-    ~TimerManager();
-    void AddTimer(std::shared_ptr<Http> sp_http, int ms_timeout);
-    void HandleExpiredEvent();
+    explicit timer_manager() {};
+    ~timer_manager() {};
+    void add_timer(sp_http sp_http, int ms_timeout);
+    void handle_expired_event();
 private:
-    std::priority_queue<SPTimer, std::deque<SPTimer>, TimerCompare>
+    std::priority_queue<sp_timer, std::deque<sp_timer>, timer_compare>
     sort_sp_timer_queue;
 };
-}
+

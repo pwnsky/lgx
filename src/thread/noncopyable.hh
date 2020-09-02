@@ -1,12 +1,11 @@
 #pragma once
+#include "../base.hh"
 
-namespace Thread {
-class Noncopyable {
+class lgx::thread::noncopyable {
 protected:
-    Noncopyable() {}
-    ~Noncopyable() {}
+    noncopyable() {}
+    ~noncopyable() {}
 private:
-    Noncopyable(const Noncopyable &);
-    const Noncopyable &operator=(const Noncopyable&);
+    noncopyable(const noncopyable &);
+    const noncopyable &operator=(const noncopyable&);
 };
-}

@@ -17,24 +17,23 @@
 #include "http.hh"
 
 
-namespace Net {
-class Net final{
+class lgx::net::net final{
 public:
-    Net(int port,int thread_number);
-    ~Net();
-    void Start();
-    void HandleNewConnection();
-    void HandleConnected();
+    net(int port,int thread_number);
+    ~net();
+    void start();
+    void handle_new_connection();
+    void handle_connected();
 private:
-    int Listen();    // Bind port_ and listen
+    int listen();    // Bind port_ and listen
     bool started_;   // Store state of net if started
     bool listened_;  // Store state of net if listend
     int port_;       // Listen port
     int number_of_thread_; // The number of thread
-    EventLoop *base_eventloop_;
+    eventloop *base_eventloop_;
     int listen_fd;
-    SPChannel accept_channel_;
-    std::unique_ptr<EventLoopThreadPool> up_eventloop_threadpool_;
+    sp_channel accept_channel_;
+    std::unique_ptr<eventloop_threadpool> up_eventloop_threadpool_;
     int accept_fd_sum = 0;
 };
-}
+

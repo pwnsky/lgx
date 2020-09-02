@@ -8,7 +8,6 @@
 #include <unordered_map>
 #include "json/json.hpp"
 
-
 #define DEFAULT_CONFIG_FILE "./etc/config.json"
 
 #define d_cout std::cout << "[" << __FILE__ << " line: " << __LINE__ << " thread id: " << std::hex <<  pthread_self() << std::oct << "] "
@@ -17,70 +16,85 @@
 #define EPOLL_WAIT_TIME 10000
 #define MAX_BUF_SIZE 4096
 
-#define SERVER_NAME "Http Server Debian Linux x64"
+#define SERVER_NAME "LGX Server Linux x64"
 
-namespace Thread {
-class Thread;
-class MutexLock;
-class CountDownLatch;
-class Condition;
+namespace lgx {
+namespace thread {
+class noncopyable;
+class thread;
+class thread_data;
+class mutex_lock;
+class mutex_lock_guard;
+class count_down_latch;
+class condition;
+namespace current_thread {}
+
 }
-
-namespace Net {
-class Channel;
-class Epoll;
-class Channel;
-class Timer;
-class TimerCompare;
-class TimerManager;
-class EventLoop;
-class EventLoopThread;
-class EventLoopThreadPool;
+// namespace net start
+namespace net {
+class net;
+class channel;
+class epoll;
+class channel;
+class timer;
+class timer_compare;
+class timer_manager;
+class eventloop;
+class eventloop_thread;
+class eventloop_threadpool;
 
 enum class HttpRecvState;
 enum class HttpConnectionState;
 enum class HttpParseURIResult;
 enum class HttpParseHeaderResult;
 enum class HttpResponseCode;
-class HttpContentType;
-class Http;
 
-using SPHttp = std::shared_ptr<Net::Http>;
-using SPEpoll = std::shared_ptr<Net::Epoll>;
-using SPTimer = std::shared_ptr<Net::Timer>;
-using SPTimerManager = std::shared_ptr<Net::TimerManager>;
-using SPEventLoopThread = std::shared_ptr<Net::EventLoopThread>;
-using SPChannel = std::shared_ptr<Net::Channel>;
+class http_content_type;
+class http;
+
+using sp_http = std::shared_ptr<lgx::net::http>;
+using sp_epoll = std::shared_ptr<lgx::net::epoll>;
+using sp_timer = std::shared_ptr<lgx::net::timer>;
+using sp_timer_manager = std::shared_ptr<lgx::net::timer_manager>;
+using sp_eventloop_thread = std::shared_ptr<lgx::net::eventloop_thread>;
+using sp_channel = std::shared_ptr<lgx::net::channel>;
 }
+// namespace net end
 
-namespace Process {
-class Center;
+
+// namespace work start
+namespace work {
+class work;
 enum class ResponseCode;
-enum class Platform;
 }
+// namespace work end
 
-namespace Util {
-using CallBack = std::function<void()>;
-using CallBack1 = std::function<void(const std::string &)>;
-using CallBack2 = std::function<void(const std::string &, const std::string &)>;
-class Vessel;
+
+// namespace util start
+namespace util {
+using callback = std::function<void()>;
+using callback1 = std::function<void(const std::string &)>;
+using callback2 = std::function<void(const std::string &, const std::string &)>;
+class vessel;
 }
+// namespace util end
 
 
-namespace Third {
-using Json = nlohmann::json;
+// namespace third start
+namespace third {
+using json = nlohmann::json;
 }
+// namespace third end
 
-namespace Data {
+
+// namespace data start
+namespace data {
 extern std::string root_path;
 extern std::string web_page;
 extern std::string web_404_page;
 }
+// namespace data end
 
-namespace Lgx {
-class StartUp;
+
+class start_up;
 }
-
-
-
-
