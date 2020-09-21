@@ -3,7 +3,7 @@
 extern std::string lgx::data::root_path;
 extern std::string lgx::data::web_page;
 extern std::string lgx::data::web_404_page;
-
+extern std::map<std::string, std::string> lgx::data::firewall;
 lgx::start_up::start_up() {
 
 }
@@ -69,6 +69,21 @@ bool lgx::start_up::load_config() {
         d_cout << e.what() << '\n';
         abort();
     }
+
+    // 防火墙禁用特定ip
+    auto ips = obj["firewall"];
+    for(auto iter = ips.begin(); iter != ips.end(); ++iter) {
+        std::string ip_key, ip;
+        try {
+            ip_key = iter.value();
+            ip = iter.value();
+        }  catch (third::json::type_error e) {
+            d_cout << e.what() << '\n';
+            return false;
+        }
+        lgx::data::firewall[ip_key] = ip;
+    }
+
     return true;
 }
 bool lgx::start_up::run_network_module() {

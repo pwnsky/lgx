@@ -1,5 +1,7 @@
 #include "util.hh"
 
+std::map<std::string, std::string> lgx::data::firewall;
+
 ssize_t lgx::net::util::read(int fd, void *buffer, size_t length) {
     ssize_t read_left = length;
     ssize_t read_len = 0;
@@ -129,13 +131,13 @@ void lgx::net::util::ignore_sigpipe() {
 
 bool lgx::net::util::set_fd_nonblocking(int listen_fd) {
     do {
-    int flag = fcntl(listen_fd, F_GETFL, 0);
-    if(flag == - 1)
-        break;
-    if(fcntl(listen_fd, F_SETFL, flag | O_NONBLOCK) == -1) {
-        break;
-    }
-    return true;
+        int flag = fcntl(listen_fd, F_GETFL, 0);
+        if(flag == - 1)
+            break;
+        if(fcntl(listen_fd, F_SETFL, flag | O_NONBLOCK) == -1) {
+            break;
+        }
+        return true;
     } while(false);
     return false;
 }
@@ -153,4 +155,17 @@ void lgx::net::util::set_fd_nolinger(int fd) {
 }
 void lgx::net::util::shutdown_write_fd(int fd) {
     shutdown(fd, SHUT_WR);
+}
+
+bool lgx::net::util::wall(int fd, const std::string &ip) {
+    std::string f_ip;
+    bool ret = false;
+    for(auto iter = lgx::data::firewall.begin(); iter != lgx::data::firewall.end(); ++iter) {
+        if(iter->second == ip) {
+            shutdown(fd, SHUT_RDWR);
+            ret = true;
+            break;
+        }
+    }
+    return ret;
 }

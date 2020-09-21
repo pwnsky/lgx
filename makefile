@@ -20,7 +20,6 @@ NET_PATH    :=  ./src/net
 THREAD_PATH :=  ./src/thread
 WORK_PATH   := ./src/work
 
-
 CRYPTO_PATH :=  ./src/crypto
 JSON_PATH   :=  ./src/json
 MAIN_PATH   :=  ./src
@@ -69,6 +68,8 @@ clean:
 
 install:
 	@sudo $(MKDIR) $(INSTALL_PATH)
-	@sudo $(CP) $(BUILD_PATH)/* $(INSTALL_PATH)
+	@sudo $(MKDIR) /etc/$(TARGET)
+	@sudo $(CP) $(BUILD_PATH)/$(TARGET) $(INSTALL_PATH)
+	@sudo $(CP) $(BUILD_PATH)/etc/config.json /etc/$(TARGET)
 	@ln -s $(INSTALL_PATH)/$(TARGET) /usr/bin/$(TARGET)
 	@echo 'install complete'

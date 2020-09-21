@@ -92,6 +92,7 @@ namespace data {
 extern std::string root_path;
 extern std::string web_page;
 extern std::string web_404_page;
+extern std::map<std::string, std::string> firewall;
 }
 // namespace data end
 

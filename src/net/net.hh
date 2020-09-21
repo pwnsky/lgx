@@ -16,7 +16,6 @@
 #include "util.hh"
 #include "http.hh"
 
-
 class lgx::net::net final{
 public:
     net(int port,int thread_number);
