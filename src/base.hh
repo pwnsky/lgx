@@ -16,7 +16,7 @@
 #define EPOLL_WAIT_TIME 10000
 #define MAX_BUF_SIZE 4096
 
-#define SERVER_NAME "LGX Server Linux x64 (c++)"
+#define SERVER_NAME "lgx-linux-1.2"
 
 namespace lgx {
 namespace thread {

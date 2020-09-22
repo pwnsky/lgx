@@ -1,6 +1,6 @@
 #include <iostream>
 #include "startup.hh"
-
+#define LGX_VERSION "1.2"
 int main(int argv, char **argc) {
 
     if(argv < 2) {
@@ -15,6 +15,7 @@ int main(int argv, char **argc) {
                      "-r, --run    run lgx server\n"
                      "-s, --stop   stop lgx server\n"
                      "-h, --help   help of lgx server\n"
+                     "-v, --version check version of lgx server\n"
                      ;
     }else if(arg == "-r" || arg == "--run") {
         startup.run(); // 启动服务
@@ -22,6 +23,8 @@ int main(int argv, char **argc) {
 
     }else if(arg == "-p" || arg == "--print") {
 
+    }else if(arg == "-v" || arg == "--version") {
+		std::cout << "lgx version: " << LGX_VERSION << '\n';			
     }else {
         std::cout << "-h get more info" << std::endl;
     }
