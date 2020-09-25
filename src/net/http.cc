@@ -285,7 +285,6 @@ lgx::net::HttpParseHeaderResult lgx::net::http::parse_header() {
         // set as lower
         str_lower(key);
         str_lower(value);
-
         map_header_info_[key] = value;
     }
 

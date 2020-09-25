@@ -15,6 +15,8 @@
 #include "eventloop_threadpool.hh"
 #include "util.hh"
 #include "http.hh"
+#include "../log/log.hh"
+using logger = lgx::log::log;
 
 class lgx::net::net final{
 public:

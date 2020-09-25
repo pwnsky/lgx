@@ -6,6 +6,7 @@
 #include <pthread.h>
 #include <list>
 #include <unordered_map>
+#include <queue>
 #include "third/json.hh"
 
 #define DEFAULT_CONFIG_FILE "./etc/config.json"
@@ -16,7 +17,7 @@
 #define EPOLL_WAIT_TIME 10000
 #define MAX_BUF_SIZE 4096
 
-#define SERVER_NAME "lgx-linux-1.2"
+#define SERVER_NAME "lgx-linux-1.3"
 
 namespace lgx {
 namespace thread {
@@ -76,9 +77,19 @@ using callback = std::function<void()>;
 using callback1 = std::function<void(const std::string &)>;
 using callback2 = std::function<void(const std::string &, const std::string &)>;
 class vessel;
+std::string date_time();
 }
 // namespace util end
 
+// namespace log start
+namespace log {
+class log;
+class log_io;
+class event;
+class log_loop;
+class log_loop_thread;
+}
+// namespace log end
 
 // namespace third start
 namespace third {
@@ -86,16 +97,18 @@ using json = nlohmann::json;
 }
 // namespace third end
 
-
 // namespace data start
 namespace data {
 extern std::string root_path;
 extern std::string web_page;
 extern std::string web_404_page;
 extern std::map<std::string, std::string> firewall;
+extern std::string log_path;
+extern int log_fd;
+extern std::queue<std::string> logs;
+extern lgx::log::log_loop *log_loop;
 }
 // namespace data end
-
 
 class start_up;
 }

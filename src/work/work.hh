@@ -13,6 +13,8 @@
 
 #include "../base.hh"
 #include "../third/json.hh"
+#include "../log/log.hh"
+using logger = lgx::log::log;
 
 enum class lgx::work::ResponseCode {
     SUCCESS = 0,

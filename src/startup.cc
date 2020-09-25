@@ -4,7 +4,10 @@ extern std::string lgx::data::root_path;
 extern std::string lgx::data::web_page;
 extern std::string lgx::data::web_404_page;
 extern std::map<std::string, std::string> lgx::data::firewall;
-lgx::start_up::start_up() {
+extern lgx::log::log_loop *lgx::data::log_loop;
+
+lgx::start_up::start_up() :
+    sp_log_thread_(new lgx::log::log_loop_thread) {
 
 }
 
@@ -30,6 +33,8 @@ bool lgx::start_up::run() {
         std::cout << "Run logger module failed" << std::endl;
         abort();
     }
+
+    logger() << "*************  start lgx server...  ***************";
 
     std::cout << "tcp port: " << port_ << "  number of thread: " << number_of_thread_ << '\n';
     if(false == this->run_network_module()) {
@@ -65,6 +70,7 @@ bool lgx::start_up::load_config() {
         lgx::data::root_path = obj["root_path"];
         lgx::data::web_page = obj["web_page"];
         lgx::data::web_404_page = obj["web_404_page"];
+        lgx::data::log_path = obj["log_path"];
     }  catch (lgx::third::json::exception &e) {
         d_cout << e.what() << '\n';
         abort();
@@ -93,5 +99,7 @@ bool lgx::start_up::run_network_module() {
 }
 
 bool lgx::start_up::run_logger_module() {
+    log_io_.open();
+    lgx::data::log_loop = sp_log_thread_->start_loop();
     return true;
 }

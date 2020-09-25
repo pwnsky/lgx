@@ -18,11 +18,12 @@ INSTALL_PATH := /usr/share/lgx
 # src path
 NET_PATH    :=  ./src/net
 THREAD_PATH :=  ./src/thread
-WORK_PATH   := ./src/work
-
-CRYPTO_PATH :=  ./src/crypto
+WORK_PATH   :=  ./src/work
+LOG_PATH    :=  ./src/log
 JSON_PATH   :=  ./src/json
+UTIL_PATH   :=  ./src/util
 MAIN_PATH   :=  ./src
+
 
 #---------------------OBJ-------------------------
 OBJS :=
@@ -30,6 +31,11 @@ OBJS :=
 MAIN_SRC := $(wildcard $(MAIN_PATH)/*.cc)  
 MAIN_OBJ := $(patsubst %.cc, %.o, $(MAIN_SRC)) 
 OBJS += $(MAIN_OBJ)
+
+# util src
+UTIL_SRC := $(wildcard $(UTIL_PATH)/*.cc)  
+UTIL_OBJ := $(patsubst %.cc, %.o, $(UTIL_SRC)) 
+OBJS += $(UTIL_OBJ)
 
 # net src
 NET_SRC := $(wildcard $(NET_PATH)/*.cc)  
@@ -46,10 +52,12 @@ WORK_SRC := $(wildcard $(WORK_PATH)/*.cc)
 WORK_OBJ := $(patsubst %.cc, %.o, $(WORK_SRC)) 
 OBJS += $(WORK_OBJ)
 
-# crypto src
-CRYPTO_SRC := $(wildcard $(CRYPTO_PATH)/*.cc)  
-CRYPTO_OBJ := $(patsubst %.cc, %.o, $(CRYPTO_SRC)) 
-OBJS += $(CRYPTO_OBJ)
+# log src
+LOG_SRC := $(wildcard $(LOG_PATH)/*.cc)  
+LOG_OBJ := $(patsubst %.cc, %.o, $(LOG_SRC)) 
+OBJS += $(LOG_OBJ)
+
+
 
 # complie
 $(TARGET):$(OBJS)

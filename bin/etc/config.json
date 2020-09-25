@@ -5,6 +5,7 @@
     "root_path" : "www",
     "web_page" : "index.html",
     "web_404_page" : "404.html",
+    "log_path" : "./lgx.log",
     "firewall" : {
     }
 }

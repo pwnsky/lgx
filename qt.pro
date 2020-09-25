@@ -3,7 +3,11 @@
 HEADERS += \
     src/base.hh \
     src/third/json.hh \
+    src/util/vessel.hh \
+    src/util/util.hh \
     src/log/log.hh \
+    src/log/log_loop.hh \
+    src/log/log_loop_thread.hh \
     src/net/channel.hh \
     src/net/epoll.hh \
     src/net/eventloop.hh \
@@ -19,11 +23,13 @@ HEADERS += \
     src/thread/mutex_lock.hh \
     src/thread/noncopyable.hh \
     src/thread/thread.hh \
-    src/util/vessel.hh \
     src/work/work.hh
 
 SOURCES += \
     src/log/log.cc \
+    src/log/log_loop.cc \
+    src/log/log_loop_thread.cc \
+    src/util/util.cc \
     src/main.cc \
     src/net/channel.cc \
     src/net/epoll.cc \

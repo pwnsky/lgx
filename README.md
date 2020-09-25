@@ -58,6 +58,7 @@ If you wanna change default page, you need to change the configure file, default
     "root_path" : "www",
     "web_page" : "index.html",
     "web_404_page" : "404.html",
+    "log_path" : "./lgx.log",
     "firewall" : {
     }
 }
@@ -74,6 +75,8 @@ root_path: the root path of access web
 web_page: default access web page file
 
 web_404_page: not found web page file
+
+log_path:  the path of log file
 
 firewall: forbid specific client to access server, for example:
 
@@ -100,10 +103,14 @@ If you configured the file,you can restart server directly, not to recomplie the
 
 2020-09-21 : Add firewall to forbid specific  ip address to access server
 
-
+2020-09-25: Add logger module
 
 Author: I0gan (徐绿国)
 
 QQ: 418894113
 
-[my-web](http://i0gan.cn)
+
+
+### Example
+
+[i0gan.cn](http://i0gan.cn)

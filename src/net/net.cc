@@ -12,6 +12,7 @@ lgx::net::net::net(int port,int number_of_thread) :
 
     if(listen_fd == -1) {
         d_cout << "net init fail\n";
+        logger() << "sys: net init fail\n";
         abort();
     }
     listened_ = true;
@@ -19,6 +20,7 @@ lgx::net::net::net(int port,int number_of_thread) :
     util::ignore_sigpipe();
     if(!util::set_fd_nonblocking(listen_fd)) {
         d_cout << "set fd nonblocking error\n";
+        logger() << "sys: set fd nonblocking error\n";
         abort();
     }
 }
@@ -81,16 +83,14 @@ void lgx::net::net::handle_new_connection() {
         //d_cout << "new connection: " << inet_ntoa(client_sockaddr.sin_addr) << " : " << ntohs(client_sockaddr.sin_port) << "\n";
          //      << '\n';
         // If the number of accept fd is greater than MAX_CONNECTED_FDS_NUM wiil be closed
-//        if(accept_fd_sum > MAX_CONNECTED_FDS_NUM) {
-//            close(accept_fd);
-//            d_cout << "max_connect_fd refused to connect\n";
-//            continue;
-//        }
-        if(util::wall(accept_fd, inet_ntoa(client_sockaddr.sin_addr))) {
-            std::cout << "forbiden: " << ntohs(client_sockaddr.sin_port) << '\n';
+        std::string client_ip = inet_ntoa(client_sockaddr.sin_addr);
+        if(util::wall(accept_fd, client_ip)) {
+            //std::cout << "forbiden: " << ntohs(client_sockaddr.sin_port) << '\n';
+            logger() << "forbid: ip: " + client_ip + std::to_string(ntohs(client_sockaddr.sin_port));
             continue;
         }
 
+        logger() << "connected: ip: " + client_ip + std::to_string(ntohs(client_sockaddr.sin_port));
         if(!util::set_fd_nonblocking(accept_fd)) {
             d_cout << "set fd nonblocking error\n";
         }

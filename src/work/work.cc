@@ -29,6 +29,7 @@ void lgx::work::work::run() {
     } catch (std::out_of_range e) { std::cout << "no method\n"; }
 
     if(parse_url() == false) {
+        logger() << "ERROR_PARSING_URL: ";
         response(ResponseCode::ERROR_PARSING_URL);
         return;
     }
@@ -36,7 +37,7 @@ void lgx::work::work::run() {
         platform_ = map_url_value_info_.at("platform");
         request_ = map_url_value_info_.at("request");
     } catch (std::out_of_range e) {}
-
+    logger() << "request: " + http_method;
     //std::cout << "method: "<< http_method << " url:[" << map_url_info_["url"] << "]\n";
     if(http_method == "get") {
         handle_get();

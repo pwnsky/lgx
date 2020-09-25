@@ -15,7 +15,9 @@
 #include "../net/timer.hh"
 #include "../work/work.hh"
 #include "../util/vessel.hh"
+#include "../log/log.hh"
 
+using logger = lgx::log::log;
 
 enum class lgx::net::HttpRecvState {
     PARSE_HEADER = 0,

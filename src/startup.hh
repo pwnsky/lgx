@@ -13,6 +13,11 @@
 #include "net/net.hh"
 #include "net/eventloop.hh"
 #include "base.hh"
+#include "log/log.hh"
+#include "log/log_loop_thread.hh"
+#include "util/util.hh"
+
+using logger = lgx::log::log;
 
 class lgx::start_up final{
 public:
@@ -30,4 +35,6 @@ private:
     int queue_size_;
     int port_;
     std::string log_path_;
+    std::shared_ptr<lgx::log::log_loop_thread> sp_log_thread_;
+    lgx::log::log_io log_io_;
 };
