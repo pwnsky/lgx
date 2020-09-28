@@ -73,6 +73,7 @@ print:
 
 clean:
 	$(RM) $(BUILD_PATH)/$(TARGET) $(OBJS)
+	$(RM) $(BUILD_PATH)/lgx.log
 
 install:
 	@sudo $(MKDIR) $(INSTALL_PATH)

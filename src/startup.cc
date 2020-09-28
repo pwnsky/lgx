@@ -23,7 +23,8 @@ void lgx::start_up::show_logo() {
 }
 
 bool lgx::start_up::stop() {
-
+    net_.stop();
+    sp_log_thread_->stop();
     return true;
 }
 
@@ -98,8 +99,9 @@ bool lgx::start_up::load_config() {
     return true;
 }
 bool lgx::start_up::run_network_module() {
-    lgx::net::net net(port_, number_of_thread_);
-    net.start();
+    net_.set_port(port_);
+    net_.set_number_of_thread(number_of_thread_);
+    net_.start();
     return true;
 }
 

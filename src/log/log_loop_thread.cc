@@ -36,4 +36,7 @@ void lgx::log::log_loop_thread::thread_func() {
     log_loop_->loop();      //run event
     log_loop_ = nullptr;
 }
+void lgx::log::log_loop_thread::stop() {
+     log_loop_->quit();
+}
 

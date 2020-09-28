@@ -38,4 +38,5 @@ private:
     std::string log_path_;
     std::shared_ptr<lgx::log::log_loop_thread> sp_log_thread_;
     lgx::log::log_io log_io_;
+    lgx::net::net net_;
 };

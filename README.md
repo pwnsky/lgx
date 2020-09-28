@@ -105,6 +105,8 @@ If you configured the file,you can restart server directly, not to recomplie the
 
 2020-09-25: Add logger module
 
+2020-09-28: Make lgx server security quit when press ctrl + c.
+
 Author: I0gan (徐绿国)
 
 QQ: 418894113

@@ -11,6 +11,7 @@ public:
     log_loop_thread();
     ~log_loop_thread();
     log_loop *start_loop();
+    void stop();
 private:
     log_loop *log_loop_;
     bool exiting_;

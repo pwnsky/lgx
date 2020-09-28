@@ -4,12 +4,15 @@
 #define LGX_VERSION "1.2"
 lgx::start_up startup;
 
-void lgx_exit(int a) {
-    std::cout << "aa";
+void lgx_exit(int s) {
     startup.stop();
     exit(0);
 }
-
+void about() {
+    std::cout << "\033[40;31mauthor : i0gan\n\033[0m"
+              << "\033[40;31memail  : 418894113@qq.com\n\033[0m"
+              << "\033[40;31mweb    : i0gan.cn\n\033[0m";
+}
 int main(int argv, char **argc) {
 
     if(argv < 2) {
@@ -25,6 +28,7 @@ int main(int argv, char **argc) {
                      "-s, --stop   stop lgx server\n"
                      "-h, --help   help of lgx server\n"
                      "-v, --version check version of lgx server\n"
+                     "-a, --about  about author\n"
                      ;
     }else if(arg == "-r" || arg == "--run") {
         startup.run(); // 启动服务
@@ -32,6 +36,8 @@ int main(int argv, char **argc) {
 
     }else if(arg == "-p" || arg == "--print") {
 
+    }else if(arg == "-a" || arg == "--about") {
+        about();
     }else if(arg == "-v" || arg == "--version") {
 		std::cout << "lgx version: " << LGX_VERSION << '\n';			
     }else {

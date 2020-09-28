@@ -34,7 +34,7 @@ void lgx::net::net::start() {
         logger() << "sys: set fd nonblocking error\n";
         abort();
     }
-    base_eventloop_ = new eventloop();
+    base_eventloop_ = new eventloop;
     accept_channel_ = sp_channel(new channel(base_eventloop_));
     accept_channel_->set_fd(listen_fd);
     up_eventloop_threadpool_ = std::unique_ptr<eventloop_threadpool>(new eventloop_threadpool(base_eventloop_, number_of_thread_));
@@ -119,7 +119,8 @@ void lgx::net::net::handle_new_connection() {
 }
 
 void lgx::net::net::stop() {
-
+    up_eventloop_threadpool_->stop();
+    base_eventloop_->quit();
 }
 
 void lgx::net::net::handle_connected() {
