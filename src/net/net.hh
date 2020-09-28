@@ -20,9 +20,13 @@ using logger = lgx::log::log;
 
 class lgx::net::net final{
 public:
-    net(int port,int thread_number);
+    net();
+    net(int port, int number_of_thread);
     ~net() {};
+    void set_port(int port);
+    void set_number_of_thread(int number_of_thread);
     void start();
+    void stop();
     void handle_new_connection();
     void handle_connected();
 private:

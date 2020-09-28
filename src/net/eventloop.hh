@@ -12,7 +12,7 @@
 class lgx::net::eventloop {
 public:
     eventloop();
-    ~eventloop() {};
+    ~eventloop() { std::cout << "~eventloop(): \n"; };
     int create_event_fd();
     void loop();
     void quit();

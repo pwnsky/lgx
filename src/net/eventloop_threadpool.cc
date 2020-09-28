@@ -1,6 +1,5 @@
 #include "eventloop_threadpool.hh"
 
-
 lgx::net::eventloop_threadpool::eventloop_threadpool(eventloop *base_eventloop, int number_of_thread) :
     started_(false),
     base_eventloop_(base_eventloop),
@@ -31,5 +30,13 @@ void lgx::net::eventloop_threadpool::start() {
         v_sp_eventloop_threads_.push_back(sp_elt);
         //store a new eventloop
         v_eventloops_.push_back(sp_elt->start_loop());
+    }
+}
+
+void lgx::net::eventloop_threadpool::stop() {
+    started_ = true;
+    for(auto iter = v_eventloops_.begin(); iter != v_eventloops_.end(); ++iter) {
+        eventloop *e = *iter;
+        e->quit();
     }
 }

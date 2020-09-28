@@ -1,6 +1,15 @@
 #include <iostream>
+#include <signal.h>
 #include "startup.hh"
 #define LGX_VERSION "1.2"
+lgx::start_up startup;
+
+void lgx_exit(int a) {
+    std::cout << "aa";
+    startup.stop();
+    exit(0);
+}
+
 int main(int argv, char **argc) {
 
     if(argv < 2) {
@@ -8,7 +17,7 @@ int main(int argv, char **argc) {
         return 0;
     }
 
-    lgx::start_up startup;
+    ::signal(SIGINT, lgx_exit);
     std::string arg = argc[1];
     if(arg == "-h" || arg == "--help") {
         std::cout << "Usage: ./lgx [OPTION...] [SECTION] PAGE...\n"

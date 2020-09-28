@@ -21,6 +21,12 @@ void lgx::start_up::show_logo() {
                  "\033[40;33m| |__| |_| |/  \\ \n\033[0m"
                  "\033[40;34m|_____\\____/_/\\_\\\n\033[0m";
 }
+
+bool lgx::start_up::stop() {
+
+    return true;
+}
+
 bool lgx::start_up::run() {
     //setbuf(stdout, nullptr);
     show_logo();
@@ -89,7 +95,6 @@ bool lgx::start_up::load_config() {
         }
         lgx::data::firewall[ip_key] = ip;
     }
-
     return true;
 }
 bool lgx::start_up::run_network_module() {

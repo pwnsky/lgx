@@ -9,6 +9,7 @@ public:
     eventloop_threadpool(eventloop *base_eventloop, int number_of_thread);
     ~eventloop_threadpool() {};
     void start();
+    void stop();
     eventloop *get_next_eventloop();
 private:
     bool started_;

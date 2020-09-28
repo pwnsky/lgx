@@ -4,36 +4,48 @@ lgx::net::net::net(int port,int number_of_thread) :
     started_(false),
     listened_(false),
     port_(port),
-    number_of_thread_(number_of_thread),
-    base_eventloop_(new eventloop()),
-    listen_fd(listen()),
-    accept_channel_(new channel(base_eventloop_)),
-    up_eventloop_threadpool_(new eventloop_threadpool(base_eventloop_, number_of_thread)) {
+    number_of_thread_(number_of_thread) {
+}
 
+lgx::net::net::net() :
+    started_(false),
+    listened_(false) {
+
+}
+
+void lgx::net::net::set_port(int port) {
+    port_ = port;
+}
+void lgx::net::net::set_number_of_thread(int number_of_thread) {
+    number_of_thread_ = number_of_thread;
+}
+
+void lgx::net::net::start() {
+    listen_fd = listen();
     if(listen_fd == -1) {
         d_cout << "net init fail\n";
         logger() << "sys: net init fail\n";
         abort();
     }
     listened_ = true;
-    accept_channel_->set_fd(listen_fd);
     util::ignore_sigpipe();
     if(!util::set_fd_nonblocking(listen_fd)) {
         d_cout << "set fd nonblocking error\n";
         logger() << "sys: set fd nonblocking error\n";
         abort();
     }
-}
-
-void lgx::net::net::start() {
+    base_eventloop_ = new eventloop();
+    accept_channel_ = sp_channel(new channel(base_eventloop_));
+    accept_channel_->set_fd(listen_fd);
+    up_eventloop_threadpool_ = std::unique_ptr<eventloop_threadpool>(new eventloop_threadpool(base_eventloop_, number_of_thread_));
     up_eventloop_threadpool_->start();
+
     accept_channel_->set_event(EPOLLIN | EPOLLET); // Set as accept data event
     accept_channel_->set_read_handler(std::bind(&net::handle_new_connection, this));
     accept_channel_->set_connected_handler(std::bind(&net::handle_connected, this));
     base_eventloop_->add_to_epoll(accept_channel_, 0);
     started_ = true;
-    base_eventloop_->loop();
-
+    base_eventloop_->loop(); //loop
 }
 
 int lgx::net::net::listen() {
@@ -104,6 +116,10 @@ void lgx::net::net::handle_new_connection() {
         next_eventloop->push_back(std::bind(&http::new_evnet, sph));
     }
     accept_channel_->set_event(EPOLLIN | EPOLLET);
+}
+
+void lgx::net::net::stop() {
+
 }
 
 void lgx::net::net::handle_connected() {
