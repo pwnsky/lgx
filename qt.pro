@@ -23,7 +23,8 @@ HEADERS += \
     src/thread/mutex_lock.hh \
     src/thread/noncopyable.hh \
     src/thread/thread.hh \
-    src/work/work.hh
+    src/work/work.hh \
+    src/crypto/url.hh
 
 SOURCES += \
     src/log/log.cc \

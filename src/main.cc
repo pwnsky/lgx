@@ -1,20 +1,19 @@
 #include <iostream>
 #include <signal.h>
 #include "startup.hh"
-#define LGX_VERSION "1.2"
+
 lgx::start_up startup;
 
 void lgx_exit(int s) {
     startup.stop();
-    exit(0);
 }
+
 void about() {
     std::cout << "\033[40;31mauthor : i0gan\n\033[0m"
               << "\033[40;31memail  : 418894113@qq.com\n\033[0m"
               << "\033[40;31mweb    : i0gan.cn\n\033[0m";
 }
 int main(int argv, char **argc) {
-
     if(argv < 2) {
         std::cout << "-h get more info" << std::endl;
         return 0;

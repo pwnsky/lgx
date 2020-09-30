@@ -22,7 +22,7 @@ class lgx::net::net final{
 public:
     net();
     net(int port, int number_of_thread);
-    ~net() {};
+    ~net();
     void set_port(int port);
     void set_number_of_thread(int number_of_thread);
     void start();
@@ -35,7 +35,7 @@ private:
     bool listened_;  // Store state of net if listend
     int port_;       // Listen port
     int number_of_thread_; // The number of thread
-    eventloop *base_eventloop_;
+    eventloop *base_eventloop_ = nullptr;
     int listen_fd;
     sp_channel accept_channel_;
     std::unique_ptr<eventloop_threadpool> up_eventloop_threadpool_;

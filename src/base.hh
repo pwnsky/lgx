@@ -9,6 +9,7 @@
 #include <queue>
 #include "third/json.hh"
 
+#define LGX_VERSION "1.3"
 #define DEFAULT_CONFIG_FILE "./etc/config.json"
 
 #define d_cout std::cout << "[" << __FILE__ << " line: " << __LINE__ << " thread id: " << std::hex <<  pthread_self() << std::oct << "] "
@@ -17,7 +18,7 @@
 #define EPOLL_WAIT_TIME 10000
 #define MAX_BUF_SIZE 4096
 
-#define SERVER_NAME "lgx-linux-1.3"
+#define SERVER_NAME "lgx-linux" LGX_VERSION
 
 namespace lgx {
 namespace thread {
@@ -57,6 +58,7 @@ using sp_http = std::shared_ptr<lgx::net::http>;
 using sp_epoll = std::shared_ptr<lgx::net::epoll>;
 using sp_timer = std::shared_ptr<lgx::net::timer>;
 using sp_timer_manager = std::shared_ptr<lgx::net::timer_manager>;
+using sp_eventloop = std::shared_ptr<lgx::net::eventloop>;
 using sp_eventloop_thread = std::shared_ptr<lgx::net::eventloop_thread>;
 using sp_channel = std::shared_ptr<lgx::net::channel>;
 }
@@ -96,7 +98,9 @@ namespace third {
 using json = nlohmann::json;
 }
 // namespace third end
-
+namespace crypto {
+class url;
+}
 // namespace data start
 namespace data {
 extern std::string root_path;

@@ -4,7 +4,7 @@
 
 CC      := g++ 
 TARGET  := lgx
-CFLAGS  := -O3 -std=c++11 --static
+CFLAGS  := -g -O3 -std=c++11 --static
 LDFLAGS := -lpthread
 RM := rm -f 
 CP := cp -r

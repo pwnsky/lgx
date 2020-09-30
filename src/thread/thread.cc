@@ -15,6 +15,7 @@ lgx::thread::thread::thread(const lgx::util::callback &call_back, const std::str
 }
 
 lgx::thread::thread::~thread() {
+    //std::cout << "~thread\n";
     if(started_ && !joined_)
         pthread_detach(pthread_id);
 }

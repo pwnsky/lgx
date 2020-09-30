@@ -4,15 +4,21 @@ lgx::net::net::net(int port,int number_of_thread) :
     started_(false),
     listened_(false),
     port_(port),
-    number_of_thread_(number_of_thread) {
+    number_of_thread_(number_of_thread),
+    base_eventloop_(new eventloop) {
+    base_eventloop_->set_name("base_eventloop");
 }
 
 lgx::net::net::net() :
     started_(false),
-    listened_(false) {
+    listened_(false),
+    base_eventloop_(new eventloop){
 
 }
-
+lgx::net::net::~net() {
+    //std::cout << "~net()";
+    delete base_eventloop_;
+};
 void lgx::net::net::set_port(int port) {
     port_ = port;
 }
@@ -34,7 +40,8 @@ void lgx::net::net::start() {
         logger() << "sys: set fd nonblocking error\n";
         abort();
     }
-    base_eventloop_ = new eventloop;
+    //base_eventloop_thread_ = sp_eventloop_thread(new eventloop_thread);
+
     accept_channel_ = sp_channel(new channel(base_eventloop_));
     accept_channel_->set_fd(listen_fd);
     up_eventloop_threadpool_ = std::unique_ptr<eventloop_threadpool>(new eventloop_threadpool(base_eventloop_, number_of_thread_));
@@ -51,6 +58,7 @@ void lgx::net::net::start() {
 int lgx::net::net::listen() {
     if(port_ < 0 || port_ > 65535) {
         d_cout << "listen port is not right\n";
+        logger() << "listen port is not right\n";
         return -1;
     }
     int listen_fd = -1;
@@ -101,7 +109,6 @@ void lgx::net::net::handle_new_connection() {
             logger() << "forbid: ip: " + client_ip + std::to_string(ntohs(client_sockaddr.sin_port));
             continue;
         }
-
         logger() << "connected: ip: " + client_ip + std::to_string(ntohs(client_sockaddr.sin_port));
         if(!util::set_fd_nonblocking(accept_fd)) {
             d_cout << "set fd nonblocking error\n";
@@ -119,8 +126,10 @@ void lgx::net::net::handle_new_connection() {
 }
 
 void lgx::net::net::stop() {
-    up_eventloop_threadpool_->stop();
     base_eventloop_->quit();
+    up_eventloop_threadpool_->stop();
+    //if(base_eventloop_)
+        //delete base_eventloop_;
 }
 
 void lgx::net::net::handle_connected() {

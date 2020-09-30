@@ -65,17 +65,12 @@ void lgx::net::epoll::del(sp_channel sp_channel) {
 
 // 获取所有的Channel
 std::vector<lgx::net::sp_channel> lgx::net::epoll::get_all_event_channels() {
-    while (true) {
-        int number_of_events =
-                //get all events
-                epoll_wait(epoll_fd_, &(*v_events_.begin()), v_events_.size(), EPOLL_WAIT_TIME);
-        if(number_of_events < 0)
-            perror("epoll_wait: ");
-
-        std::vector<sp_channel> v_sp_channel_all_events = get_event_channels_after_get_events(number_of_events);
-        if(v_sp_channel_all_events.size() > 0)
-            return v_sp_channel_all_events;
-    }
+    int number_of_events =
+    epoll_wait(epoll_fd_, &(*v_events_.begin()), v_events_.size(), EPOLL_WAIT_TIME);
+    if(number_of_events < 0)
+        perror("epoll_wait: ");
+    std::vector<sp_channel> v_sp_channel_all_events = get_event_channels_after_get_events(number_of_events);
+    return v_sp_channel_all_events;
 }
 
 // 在获取事件后, 获取channel

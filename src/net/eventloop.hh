@@ -12,7 +12,9 @@
 class lgx::net::eventloop {
 public:
     eventloop();
-    ~eventloop() { std::cout << "~eventloop(): \n"; };
+    void set_name(const std::string name) { name_ = name; };
+    ~eventloop() { //std::cout << "~eventloop(): \n";
+    };
     int create_event_fd();
     void loop();
     void quit();
@@ -29,6 +31,7 @@ private:
     int awake_fd_;
     bool quit_;
     bool event_handling_;
+    std::string name_ = "none";
     const pid_t thread_id_;
     sp_epoll sp_epoll_;
     sp_channel sp_awake_channel_;           // 用于唤醒的Channel

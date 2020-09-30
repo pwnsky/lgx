@@ -1,5 +1,4 @@
 #include "eventloop.hh"
-__thread lgx::net::eventloop *global_eventloop = nullptr;
 
 lgx::net::eventloop::eventloop() :
     looping_(false),
@@ -10,11 +9,6 @@ lgx::net::eventloop::eventloop() :
     sp_epoll_(new epoll()),
     sp_awake_channel_(new channel(this, awake_fd_))
 {
-    if(global_eventloop) {
-
-    }else {
-        global_eventloop = this;
-    }
     sp_awake_channel_->set_event(EPOLLIN | EPOLLET);
     sp_awake_channel_->set_read_handler(std::bind(&eventloop::handle_read, this));
     sp_awake_channel_->set_connected_handler(std::bind(&eventloop::handle_connect, this));
@@ -22,14 +16,12 @@ lgx::net::eventloop::eventloop() :
 }
 
 void lgx::net::eventloop::handle_read() {
-
     // 读取数据传输到缓冲区前的数据
     char buf[8];
     ssize_t read_len = lgx::net::util::read(awake_fd_, &buf, sizeof(buf));
     if(read_len != sizeof (buf)) {
         std::cout << "eventloop::hand_read() reads " << read_len << "instead of 8\n";
     }
-    //std::cout << "data: [" << buf << "]\n";
     sp_awake_channel_->set_event(EPOLLIN | EPOLLET);
 }
 
@@ -63,13 +55,13 @@ void lgx::net::eventloop::loop() {
     std::vector<sp_channel> v_sp_event_channels;
     while(!quit_) {
         v_sp_event_channels.clear();
-        v_sp_event_channels = sp_epoll_->get_all_event_channels(); // 获取所有未处理事件
+        v_sp_event_channels = sp_epoll_->get_all_event_channels(); // get all unhandle events
         event_handling_ = true;
         for (auto &sp_channel : v_sp_event_channels) {
-            sp_channel->handle_event(); // 处理事件
+            sp_channel->handle_event(); // handle event
         }
         event_handling_  = false;
-        run_pending_callback_func(); // 运行等待的回调函数
+        run_pending_callback_func();   // run pending callback function
         sp_epoll_->handle_expired_event();
     }
 }

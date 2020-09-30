@@ -1,5 +1,6 @@
 #! /bin/bash
-# This script for starting ltalk server
+# Author: i0gan
+# This script for starting lgx server
 
 cd bin
 if (($# < 1)); then

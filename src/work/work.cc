@@ -81,13 +81,17 @@ bool lgx::work::work::parse_url() {
     std::string url;
     std::string value_url;
     std::string path;
+
     try {
         url = map_header_info_.at("url");
     } catch (std::out_of_range e) {
         std::cout << "map_header_info_[url]" << e.what() << '\n';
         return false;
     }
-    map_url_info_["url"] = url;
+
+    map_url_info_["orignal_url"] = url;
+    map_url_info_["url"] = lgx::crypto::url::decode(url);
+
     int first_value_pos = url.find("?");
     if(first_value_pos > 0) {
         value_url = url.substr(first_value_pos + 1);

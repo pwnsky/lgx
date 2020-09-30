@@ -8,9 +8,9 @@ The lgx server is a high-performance web server, written by c++ language.
 
 
 
-## Complie lgx server
+## Compile lgx server
 
-You should make sure you have install complie env as follows:
+You should make sure you have install compile environment as follows:
 ### Debian, Ubuntu ....
 
 ```
@@ -18,14 +18,14 @@ sudo apt install g++
 sudo apt install make
 ```
 ### Get open source
-Git clone src to complie
+Git clone src to compile
 
 ```sh
 git clone https://github.com/I0gan/lgx.git
 cd lgx
 ```
-Now you can complie with make
-### comple
+Now you can compile with make
+### compile
 ```
 make
 ```
@@ -107,11 +107,23 @@ If you configured the file,you can restart server directly, not to recomplie the
 
 2020-09-28: Make lgx server security quit when press ctrl + c.
 
-Author: I0gan (徐绿国)
-
-QQ: 418894113
+2020-09-30: Fix memory leak when ctrl + c and add a cypto module to decode url code
 
 
+
+## About author
+
+Name: `I0gan` 
+
+QQ: `418894113`
+
+Email: `l418894113@gmail.com`
+
+
+
+## feedback
+
+If you have found any vulnerability in lgx source code, welcome to feedback by sending email to  `l418894113@gmail.com` 
 
 ### Example
 

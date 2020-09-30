@@ -12,6 +12,7 @@ void lgx::log::log_loop::loop() {
     while (!quit_) {
         io_.write();
     }
+    std::cout << "stop log module\n";
 }
 
 void lgx::log::log_loop::quit() {

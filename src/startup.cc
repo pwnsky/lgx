@@ -1,5 +1,6 @@
 #include "startup.hh"
 
+
 extern std::string lgx::data::root_path;
 extern std::string lgx::data::web_page;
 extern std::string lgx::data::web_404_page;

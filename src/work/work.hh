@@ -14,6 +14,8 @@
 #include "../base.hh"
 #include "../third/json.hh"
 #include "../log/log.hh"
+#include "../crypto/url.hh"
+
 using logger = lgx::log::log;
 
 enum class lgx::work::ResponseCode {
@@ -42,7 +44,6 @@ public:
     void set_error_handler(lgx::util::callback2 error_handler);
     void set_send_file_handler(lgx::util::callback1 send_file_handler);
     void set_fd(int fd) ;
-
     void run();
     void handle_get();
     void handle_post();

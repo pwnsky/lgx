@@ -9,14 +9,14 @@ lgx::net::eventloop_thread::eventloop_thread() :
 
 }
 
-lgx::net::eventloop_thread::eventloop_thread::~eventloop_thread() {
+lgx::net::eventloop_thread::~eventloop_thread() {
     exiting_ = true;
     if(eventloop_ != nullptr) {
         eventloop_->quit();
         thread_.join();
     }
 }
-lgx::net::eventloop *lgx::net::eventloop_thread::eventloop_thread::start_loop() {
+lgx::net::eventloop *lgx::net::eventloop_thread::start_loop() {
     assert(thread_.is_started() == false);
     thread_.start();
 
@@ -28,11 +28,17 @@ lgx::net::eventloop *lgx::net::eventloop_thread::eventloop_thread::start_loop() 
     // return a new eventloop object ptr
     return eventloop_;
 }
-void lgx::net::eventloop_thread::eventloop_thread::thread_func() {
+void lgx::net::eventloop_thread::thread_func() {
     // create a new eventloop
     eventloop el;
+    el.set_name(name_);
     eventloop_ = &el;
     condition_.signal(); // Notify Main thread then realize Sync
     eventloop_->loop();  //run event
     eventloop_ = nullptr;
+}
+
+void lgx::net::eventloop_thread::stop_loop() {
+    if(eventloop_)
+        eventloop_->quit();
 }
