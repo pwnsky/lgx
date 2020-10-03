@@ -85,11 +85,10 @@ std::string date_time();
 
 // namespace log start
 namespace log {
+class io;
 class log;
-class log_io;
-class event;
-class log_loop;
-class log_loop_thread;
+class logger;
+class log_thread;
 }
 // namespace log end
 
@@ -108,9 +107,8 @@ extern std::string web_page;
 extern std::string web_404_page;
 extern std::map<std::string, std::string> firewall;
 extern std::string log_path;
-extern int log_fd;
-extern std::queue<std::string> logs;
-extern lgx::log::log_loop *log_loop;
+
+extern lgx::log::log *p_log;
 }
 // namespace data end
 

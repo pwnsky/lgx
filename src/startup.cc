@@ -5,10 +5,11 @@ extern std::string lgx::data::root_path;
 extern std::string lgx::data::web_page;
 extern std::string lgx::data::web_404_page;
 extern std::map<std::string, std::string> lgx::data::firewall;
-extern lgx::log::log_loop *lgx::data::log_loop;
+extern lgx::log::log *lgx::data::p_log;
+extern std::string lgx::data::log_path;
 
 lgx::start_up::start_up() :
-    sp_log_thread_(new lgx::log::log_loop_thread) {
+    sp_log_thread_(new lgx::log::log_thread) {
 
 }
 
@@ -107,7 +108,7 @@ bool lgx::start_up::run_network_module() {
 }
 
 bool lgx::start_up::run_logger_module() {
-    log_io_.open();
-    lgx::data::log_loop = sp_log_thread_->start_loop();
+    sp_log_thread_->set_log_path(lgx::data::log_path);
+    lgx::data::p_log = sp_log_thread_->creat();
     return true;
 }

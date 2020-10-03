@@ -16,7 +16,7 @@
 #include "../log/log.hh"
 #include "../crypto/url.hh"
 
-using logger = lgx::log::log;
+using logger = lgx::log::logger;
 
 enum class lgx::work::ResponseCode {
     SUCCESS = 0,
@@ -65,5 +65,6 @@ private:
     bool parse_url();
     void handle_not_found();
     void response(ResponseCode error_code);
+    bool is_dir(const std::string &path);
     std::string get_date_time();
 };

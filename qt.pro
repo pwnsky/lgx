@@ -6,8 +6,7 @@ HEADERS += \
     src/util/vessel.hh \
     src/util/util.hh \
     src/log/log.hh \
-    src/log/log_loop.hh \
-    src/log/log_loop_thread.hh \
+    src/log/log_thread.hh \
     src/net/channel.hh \
     src/net/epoll.hh \
     src/net/eventloop.hh \
@@ -28,8 +27,7 @@ HEADERS += \
 
 SOURCES += \
     src/log/log.cc \
-    src/log/log_loop.cc \
-    src/log/log_loop_thread.cc \
+    src/log/log_thread.cc \
     src/util/util.cc \
     src/main.cc \
     src/net/channel.cc \

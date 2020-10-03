@@ -17,7 +17,7 @@
 #include "../util/vessel.hh"
 #include "../log/log.hh"
 
-using logger = lgx::log::log;
+using logger = lgx::log::logger;
 
 enum class lgx::net::HttpRecvState {
     PARSE_HEADER = 0,

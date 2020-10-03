@@ -16,7 +16,7 @@
 #include "util.hh"
 #include "http.hh"
 #include "../log/log.hh"
-using logger = lgx::log::log;
+using logger = lgx::log::logger;
 
 class lgx::net::net final{
 public:

@@ -48,6 +48,7 @@ lgx::net::http::http(int fd,eventloop *elp) :
     http_connection_state_(HttpConnectionState::CONNECTED),
     http_process_state_(HttpRecvState::PARSE_HEADER),
     keep_alive_(false) {
+    //std::cout << "http()\n";
     //set callback function handler
     sp_channel_->set_read_handler(std::bind(&http::handle_read, this));
     sp_channel_->set_write_handler(std::bind(&http::handle_write, this));
@@ -55,6 +56,7 @@ lgx::net::http::http(int fd,eventloop *elp) :
 }
 lgx::net::http::~http() {
     close(fd_);
+    //std::cout << "~http()\n";
 }
 
 void lgx::net::http::reset() {
@@ -103,17 +105,18 @@ void lgx::net::http::unbind_timer() {
 void lgx::net::http::handle_read() {
     __uint32_t &event = sp_channel_->get_event();
     do {
+        //std::cout << "out_buf capacity: " << out_buffer_.capacity() << "\n";
         int read_len = lgx::net::util::read(fd_, in_buffer_);
         //std::cout << "http_content:__[" << in_buffer_ << "]__";
         //if state as disconnecting will clean th in buffer
         if(http_connection_state_ == HttpConnectionState::DISCONNECTING) {
-            std::cout << "DISCONNECTING\n";
+            //std::cout << "DISCONNECTING\n";
             in_buffer_.clear();
             break;
         }
         if(read_len == 0) {
             http_connection_state_ = HttpConnectionState::DISCONNECTING;
-            std::cout << "recv 0 DISCONNECTING\n";
+            //std::cout << "recv 0 DISCONNECTING\n";
             in_buffer_.clear();
             break;
         }else if(read_len < 0) { // Read data error
@@ -391,6 +394,11 @@ void lgx::net::http::send_file(const std::string &file_name) {
         out_buffer_ << "\r\n";
         // write header
         void* file_mmap_ptr = mmap(nullptr, stat_buf.st_size, PROT_READ, MAP_PRIVATE, fd, 0);
+
+        if(!file_mmap_ptr) {
+            handle_error((int)HttpResponseCode::SEE_OTHER, "Internal server error");
+            break;
+        }
         // Sended it is less than 100 MB
         if(stat_buf.st_size < (1024 * 1024 * 100)) {
             out_buffer_.append(file_mmap_ptr, stat_buf.st_size);

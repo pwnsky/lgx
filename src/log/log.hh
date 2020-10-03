@@ -9,21 +9,52 @@
 #include <time.h>
 #include <sys/time.h>
 #include "../util/util.hh"
+#include "../thread/mutex_lock.hh"
+#include <atomic>
 
-extern lgx::log::log_loop *lgx::data::log_loop;
-extern int lgx::data::log_fd;
+extern lgx::log::log *lgx::data::p_log;
 extern std::string lgx::data::log_path;
-class lgx::log::log {
-public:
-    void operator<< (const std::string &t) {
-        lgx::data::logs.push('\n' + lgx::util::date_time() + '\n' + t);
-    }
-};
 
+#include <atomic>
 // handling in log eventloop thread
-class lgx::log::log_io {
+class lgx::log::io {
 public:
     void close();
-    void open();
+    void open(const std::string &log_path);
     void write();
+    void push(const std::string &log);
+private:
+    int log_fd_ = -1;
+    std::queue<std::string> logs_;
+    lgx::thread::mutex_lock mutex_lock_;
+    std::atomic<bool> is_push_;
+};
+
+class lgx::log::log {
+public:
+    log();
+    ~log();
+    void loop();
+    void quit();
+    void set_log_path(const std::string &log_path) {
+        log_path_ = log_path;
+    }
+    void push(const std::string &log) {
+        io_.push(log);
+    }
+
+private:
+    std::atomic<bool> quit_;
+    io io_;
+    std::string log_path_;
+};
+
+class lgx::log::logger {
+public:
+    void operator<< (const std::string &t) {
+        if(lgx::data::p_log)
+            lgx::data::p_log->push('\n' + lgx::util::date_time() + '\n' + t);
+    }
+private:
+
 };

@@ -54,11 +54,13 @@ void lgx::net::eventloop::loop() {
     quit_ = false;
     std::vector<sp_channel> v_sp_event_channels;
     while(!quit_) {
+        //std::cout << "looping!\n";
         v_sp_event_channels.clear();
         v_sp_event_channels = sp_epoll_->get_all_event_channels(); // get all unhandle events
         event_handling_ = true;
         for (auto &sp_channel : v_sp_event_channels) {
-            sp_channel->handle_event(); // handle event
+            if(sp_channel)
+                sp_channel->handle_event(); // handle event
         }
         event_handling_  = false;
         run_pending_callback_func();   // run pending callback function
@@ -117,7 +119,9 @@ void lgx::net::eventloop::run_pending_callback_func() {
     v_callback_functions.swap(pending_callback_functions_); // 获取所有等待的毁掉函数
     // 依次运行回调函数
     for( size_t idx = 0; idx < v_callback_functions.size(); ++idx) {
-        v_callback_functions[idx](); // 依次运行
+        lgx::util::callback func = v_callback_functions[idx];
+        if(func)
+            func(); // 依次运行
     }
     calling_pending_callback_function_ = false;
 }

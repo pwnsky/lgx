@@ -50,27 +50,32 @@ void lgx::work::work::run() {
 
 void lgx::work::work::handle_get() {
     bool error = false;
-    std::string path = map_url_info_["path"];
+    std::string path;
+    try {
+        path = map_url_info_.at("path");
+    }  catch (std::out_of_range e) {
+        std::cout << "map_header_info_[url]" << e.what() << '\n';
+        error = true;
+    }
     do {
-        if(path == "/" && platform_.empty()) {
-            path = lgx::data::root_path + "/" + lgx::data::web_page;
-            send_file(path);
-            break;
-        }else {
-            try {
-                path = lgx::data::root_path + "/" + map_url_info_.at("path");
-                send_file(path);
-            }  catch (std::out_of_range e) {
-                std::cout << "map_header_info_[url]" << e.what() << '\n';
-                error = true;
-            }
-        }
+        if(is_dir(path))
+            path = lgx::data::root_path + path + lgx::data::web_page;
+        else
+            path = lgx::data::root_path + path;
     } while(false);
     // Send get file
     if(error) {
         std::cout << "error\n";
         handle_not_found();
-    }
+    }else
+        send_file(path);
+}
+bool lgx::work::work::is_dir(const std::string &path) {
+    if(path.size() < 1)
+        return false;
+    else if(path[0] == '/' && path.at(path.size() - 1) == '/')
+        return true;
+    return false;
 }
 
 void lgx::work::work::handle_post() {
@@ -88,9 +93,8 @@ bool lgx::work::work::parse_url() {
         std::cout << "map_header_info_[url]" << e.what() << '\n';
         return false;
     }
-
-    map_url_info_["orignal_url"] = url;
-    map_url_info_["url"] = lgx::crypto::url::decode(url);
+    map_url_info_["url"] = url;
+    //map_url_info_["url"] = lgx::crypto::url::decode(url);
 
     int first_value_pos = url.find("?");
     if(first_value_pos > 0) {

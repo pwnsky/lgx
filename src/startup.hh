@@ -14,11 +14,12 @@
 #include "net/net.hh"
 #include "net/eventloop.hh"
 #include "base.hh"
+#include "log/log_thread.hh"
 #include "log/log.hh"
-#include "log/log_loop_thread.hh"
+
 #include "util/util.hh"
 
-using logger = lgx::log::log;
+using logger = lgx::log::logger;
 
 class lgx::start_up final{
 public:
@@ -31,12 +32,12 @@ public:
     bool run_network_module();
     void show_logo();
 
+
 private:
     int number_of_thread_;
     int queue_size_;
     int port_;
     std::string log_path_;
-    std::shared_ptr<lgx::log::log_loop_thread> sp_log_thread_;
-    lgx::log::log_io log_io_;
+    std::shared_ptr<lgx::log::log_thread> sp_log_thread_;
     lgx::net::net net_;
 };
