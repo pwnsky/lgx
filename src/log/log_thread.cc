@@ -24,17 +24,16 @@ lgx::log::log *lgx::log::log_thread::creat() {
     lgx::thread::mutex_lock_guard mutex_lock_guard(mutex_lock_);
     while(log_ == nullptr)
         condition_.wait();
-    // return a new eventloop object ptr
+    // return a new log object ptr
     return log_;
 }
 
 void lgx::log::log_thread::thread_func() {
-    // create a new eventloop
     log l;
     log_ = &l;
     log_->set_log_path(log_path_); // set the path to log
     condition_.signal();    // Notify Main thread then realize Sync
-    log_->loop();      //run event
+    log_->loop();          //run event
     log_ = nullptr;
 }
 

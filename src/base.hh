@@ -9,7 +9,7 @@
 #include <queue>
 #include "third/json.hh"
 
-#define LGX_VERSION "1.3"
+
 #define DEFAULT_CONFIG_FILE "./etc/config.json"
 
 #define d_cout std::cout << "[" << __FILE__ << " line: " << __LINE__ << " thread id: " << std::hex <<  pthread_self() << std::oct << "] "
@@ -18,6 +18,7 @@
 #define EPOLL_WAIT_TIME 10000
 #define MAX_BUF_SIZE 4096
 
+#define LGX_VERSION "1.4"
 #define SERVER_NAME "lgx-linux" LGX_VERSION
 
 namespace lgx {

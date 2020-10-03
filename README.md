@@ -1,14 +1,16 @@
-# lgx web server
+# LGX WEB SERVER
 
 
 
 ## Introduction
 
-The lgx server is a high-performance web server, written by c++ language.
+The lgx server is a high-performance static web server, written by c++ language. If you wanna to handle post or get method of http, you can use c++ language to develop your own server, just develop the src/work/work.hh/cc.
 
 
 
-## Compile lgx server
+
+
+## How to use lgx server
 
 You should make sure you have install compile environment as follows:
 ### Debian, Ubuntu ....
@@ -95,7 +97,7 @@ If you configured the file,you can restart server directly, not to recomplie the
 
 
 
-## dev log
+## Dev Log
 
 2020-04-...   : Create a server multi-threads and epoll event framework
 
@@ -109,9 +111,71 @@ If you configured the file,you can restart server directly, not to recomplie the
 
 2020-09-30: Fix memory leak when ctrl + c and add a cypto module to decode url code
 
+2020-10-03: Fix server breakdown when access web frequently (BUG: The log module is not synchronized)
 
 
-## About author
+
+## LGX CVE LIST
+
+[LIST](./vuls/cve.md)
+
+
+
+
+
+## Src Tree
+
+**.** 
+├── **base.hh** 
+├── **crypto** 
+│  └── url.hh 
+├── **log** 
+│  ├── **log.cc** 
+│  ├── **log.hh** 
+│  ├── **log_thread.cc** 
+│  └── **log_thread.hh** 
+├── **main.cc** 
+├── **net** 
+│  ├── **channel.cc** 
+│  ├── **channel.hh** 
+│  ├── **epoll.cc** 
+│  ├── **epoll.hh** 
+│  ├── **eventloop.cc** 
+│  ├── **eventloop.hh** 
+│  ├── **eventloop_thread.cc** 
+│  ├── **eventloop_thread.hh** 
+│  ├── **eventloop_threadpool.cc** 
+│  ├── **eventloop_threadpool.hh** 
+│  ├── **http.cc** 
+│  ├── **http.hh** 
+│  ├── **net.cc** 
+│  ├── **net.hh** 
+│  ├── **timer.cc** 
+│  ├── **timer.hh** 
+│  ├── **util.cc** 
+│  └── **util.hh** 
+├── **startup.cc** 
+├── **startup.hh** 
+├── **third** 
+│  └── **json.hh** 
+├── **thread** 
+│  ├── **condition.hh** 
+│  ├── **count_down_latch.hh** 
+│  ├── **mutex_lock.hh** 
+│  ├── **noncopyable.hh** 
+│  ├── **thread.cc** 
+│  └── **thread.hh** 
+├── **util** 
+│  ├── **util.cc** 
+│  ├── **util.hh** 
+│  └── **vessel.hh** 
+└── **work** 
+   ├── **work.cc** 
+   └── **work.hh**
+
+
+
+## About Author
 
 Name: `I0gan` 
 
@@ -119,9 +183,13 @@ QQ: `418894113`
 
 Email: `l418894113@gmail.com`
 
+Web: http://i0gan.cn
+
+Blog: http://blog.i0gan.cn
 
 
-## feedback
+
+## Feedback
 
 If you have found any vulnerability in lgx source code, welcome to feedback by sending email to  `l418894113@gmail.com` 
 

@@ -8,6 +8,7 @@
 #include "util.hh"
 #include <sys/epoll.h>
 #include <sys/eventfd.h>
+#include <atomic>
 
 class lgx::net::eventloop {
 public:
@@ -29,7 +30,7 @@ public:
 private:
     bool looping_;
     int awake_fd_;
-    bool quit_;
+    std::atomic<bool> quit_;
     bool event_handling_;
     std::string name_ = "none";
     const pid_t thread_id_;

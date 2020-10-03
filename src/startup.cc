@@ -45,7 +45,7 @@ bool lgx::start_up::run() {
 
     logger() << "*************  start lgx server...  ***************";
 
-    std::cout << "tcp port: " << port_ << "  number of thread: " << number_of_thread_ << '\n';
+    std::cout << "\nlgx port: " << port_ << "  number of thread: " << number_of_thread_ << '\n';
     if(false == this->run_network_module()) {
         std::cout << "Run network module failed!\n";
         abort();
