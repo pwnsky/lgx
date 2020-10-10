@@ -26,8 +26,6 @@ bool set_fd_nonblocking(int listen_fd); //set fd as non bloking
 void set_fd_nodelay(int fd);            //set fd no delay
 void set_fd_nolinger(int fd);           //set fd no linger
 void shutdown_write_fd(int fd);         //shutdown fd of write
-bool wall(int fd, const std::string &ip);       // fire wall
-}
-}
-}
+
+}}}
 

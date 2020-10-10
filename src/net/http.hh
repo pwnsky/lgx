@@ -89,7 +89,7 @@ enum class lgx::net::HttpResponseCode {
     NETWORK_AUTHENTICATION_REQUIRED
 };
 
-class lgx::net::http_content_type {
+class lgx::net::http_content_type final {
 public:
     static std::string get_type(const std::string name);
 private:
@@ -138,4 +138,3 @@ private:
     void send_file(const std::string &file_name);
     void str_lower(std::string &str);
 };
-

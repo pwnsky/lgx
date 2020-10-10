@@ -445,15 +445,20 @@ void lgx::net::http::handle_connect() {
 }
 
 void lgx::net::http::handle_error(int error_number, std::string message) {
+
     out_buffer_.clear();
     message = " " + message;
     std::string header_buffer, body_buffer;
-    body_buffer += "<html><title>Bad request</title>";
-    body_buffer += "<body bgcolor=\"ffffff\">";
-    body_buffer += std::to_string(error_number) + message;
-    body_buffer += "<hr><em> " +  std::string(SERVER_NAME) + " </em>\n</body></html>";
+    body_buffer += "<html><title>request error</title>";
+    body_buffer += "<body bgcolor=\"ffffff\"><center><hr>";
+    body_buffer += "<p>" + std::to_string(error_number) + message + "</p>";
+    body_buffer += "<p>" + std::string(SERVER_NAME) + "</p>";
+    body_buffer += "<p>" + lgx::util::date_time() + "</p>";
+    body_buffer += "<p>lgx src: https://github.com/i0gan/lgx</p>";
+    body_buffer += "</hr></center></body></html>";
+
     header_buffer += "HTTP/1.1 " + std::to_string(error_number) + message + "\r\n";
-    header_buffer += "Access-Control-Allow-Origin: *\r\n";
+    //header_buffer += "Access-Control-Allow-Origin: *\r\n";
     header_buffer += "Server: " + std::string(SERVER_NAME) + "\r\n";
     header_buffer += "Connection: Close\r\n";
     header_buffer += "Content-Type: text/html\r\n";

@@ -16,14 +16,17 @@ HEADERS += \
     src/net/net.hh \
     src/net/timer.hh \
     src/net/util.hh \
-    src/startup.hh \
+    src/start_up.hh \
     src/thread/condition.hh \
     src/thread/count_down_latch.hh \
     src/thread/mutex_lock.hh \
     src/thread/noncopyable.hh \
     src/thread/thread.hh \
     src/work/work.hh \
-    src/crypto/url.hh
+    src/crypto/url.hh \
+    src/security/firewall.hh \
+    src/db/mysql/sql.hh \
+    src/db/mysql/query.hh
 
 SOURCES += \
     src/log/log.cc \
@@ -39,6 +42,9 @@ SOURCES += \
     src/net/net.cc \
     src/net/timer.cc \
     src/net/util.cc \
-    src/startup.cc \
+    src/start_up.cc \
     src/thread/thread.cc \
-    src/work/work.cc
+    src/work/work.cc \
+    src/security/firewall.cc \
+    src/db/mysql/sql.cc \
+    src/db/mysql/query.cc

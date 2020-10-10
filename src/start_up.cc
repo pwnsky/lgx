@@ -1,20 +1,22 @@
-#include "startup.hh"
-
+#include "start_up.hh"
 
 extern std::string lgx::data::root_path;
 extern std::string lgx::data::web_page;
 extern std::string lgx::data::web_404_page;
-extern std::map<std::string, std::string> lgx::data::firewall;
 extern lgx::log::log *lgx::data::p_log;
 extern std::string lgx::data::log_path;
 
+std::map<std::string, std::string> lgx::data::forbid_ips;
+lgx::security::firewall *lgx::data::firewall = nullptr;
+
 lgx::start_up::start_up() :
     sp_log_thread_(new lgx::log::log_thread) {
-
 }
 
 lgx::start_up::~start_up() {
-
+    if(lgx::data::firewall) {
+        delete lgx::data::firewall;
+    }
 }
 void lgx::start_up::show_logo() {
     std::cout << "\033[40;30m _     ______  __\n\033[0m"
@@ -31,26 +33,34 @@ bool lgx::start_up::stop() {
 }
 
 bool lgx::start_up::run() {
+    bool error = true;
     //setbuf(stdout, nullptr);
     show_logo();
-    if(load_config() == false) {
-        std::cout << "Load config file failed!\n" << std::endl;
-        abort();
-    }
+    do {
+        if(load_config() == false) {
+            std::cout << "Load config file failed!\n" << std::endl;
+            break;
+        }
 
-    if(run_logger_module() == false) {
-        std::cout << "Run logger module failed" << std::endl;
-        abort();
-    }
+        if(run_security_module() == false) {
+            std::cout << "Run security module failed\n" << std::endl;
+            break;
+        }
 
-    logger() << "*************  start lgx server...  ***************";
+        if(run_logger_module() == false) {
+            std::cout << "Run logger module failed\n" << std::endl;
+            break;
+        }
 
-    std::cout << "\nlgx port: " << port_ << "  number of thread: " << number_of_thread_ << '\n';
-    if(false == this->run_network_module()) {
-        std::cout << "Run network module failed!\n";
-        abort();
-    }
-    return true;
+        logger() << "*************  start lgx server...  ***************";
+        std::cout << "\nlgx port: " << port_ << "  number of thread: " << number_of_thread_ << '\n';
+        if(false == this->run_network_module()) {
+            std::cout << "Run network module failed!\n";
+            break;
+        }
+        error = false;
+    }while(false);
+    return error;
 }
 
 // Load config file
@@ -96,7 +106,7 @@ bool lgx::start_up::load_config() {
             d_cout << e.what() << '\n';
             return false;
         }
-        lgx::data::firewall[ip_key] = ip;
+        lgx::data::firewall->forbid(ip_key, ip);
     }
     return true;
 }
@@ -110,5 +120,11 @@ bool lgx::start_up::run_network_module() {
 bool lgx::start_up::run_logger_module() {
     sp_log_thread_->set_log_path(lgx::data::log_path);
     lgx::data::p_log = sp_log_thread_->creat();
+    return true;
+}
+
+bool lgx::start_up::run_security_module() {
+    lgx::data::firewall = new lgx::security::firewall();
+    lgx::data::firewall->set_forbid_ips(lgx::data::forbid_ips);
     return true;
 }

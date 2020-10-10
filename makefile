@@ -4,7 +4,7 @@
 
 CC      := g++ 
 TARGET  := lgx
-CFLAGS  := -g -O3 -std=c++11 --static
+CFLAGS  := -g -O3 -std=c++14 
 LDFLAGS := -lpthread
 RM := rm -f 
 CP := cp -r
@@ -22,7 +22,10 @@ WORK_PATH   :=  ./src/work
 LOG_PATH    :=  ./src/log
 JSON_PATH   :=  ./src/json
 UTIL_PATH   :=  ./src/util
+SECURITY_PATH := ./src/security
 MAIN_PATH   :=  ./src
+DB_MYSQL_PATH := ./src/db/mysql
+#LDFLAGS += lmysqlclient
 
 
 #---------------------OBJ-------------------------
@@ -58,6 +61,15 @@ LOG_OBJ := $(patsubst %.cc, %.o, $(LOG_SRC))
 OBJS += $(LOG_OBJ)
 
 
+# security src
+SECURITY_SRC := $(wildcard $(SECURITY_PATH)/*.cc)  
+SECURITY_OBJ := $(patsubst %.cc, %.o, $(SECURITY_SRC)) 
+OBJS += $(SECURITY_OBJ)
+
+# mysql src
+#DB_MYSQL_SRC := $(wildcard $(DB_MYSQL_PATH)/*.cc)  
+#DB_MYSQL_OBJ := $(patsubst %.cc, %.o, $(DB_MYSQL_SRC)) 
+#OBJS += $(DB_MYSQL_OBJ)
 
 # complie
 $(TARGET):$(OBJS)
@@ -71,6 +83,7 @@ $(OBJS):%.o:%.cc
 print:
 	@echo $(OBJS)	
 
+.PHONY:clean
 clean:
 	$(RM) $(BUILD_PATH)/$(TARGET) $(OBJS)
 	$(RM) $(BUILD_PATH)/lgx.log

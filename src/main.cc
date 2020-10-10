@@ -1,6 +1,6 @@
 #include <iostream>
 #include <signal.h>
-#include "startup.hh"
+#include "start_up.hh"
 #define UNUSED(var) do { (void)(var); } while (false)
 
 lgx::start_up startup;
@@ -8,13 +8,16 @@ lgx::start_up startup;
 void lgx_exit(int s) {
     UNUSED(s);
     startup.stop();
-    std::cout << "quited! lgx\n";
 }
 
 void about() {
     std::cout << "\033[40;31mauthor : i0gan\n\033[0m"
               << "\033[40;31memail  : 418894113@qq.com\n\033[0m"
               << "\033[40;31mweb    : i0gan.cn\n\033[0m";
+}
+void init() {
+    //std::ios::sync_with_stdio(false);
+    //std::cin.tie(nullptr);
 }
 
 int main(int argv, char **argc) {
@@ -35,6 +38,7 @@ int main(int argv, char **argc) {
                      ;
     }else if(arg == "-r" || arg == "--run") {
         startup.run(); // 启动服务
+		std::cout << "\033[40;33mlgx quited! \n\033[0m";
     }else if(arg == "-s" || arg == "--stop") {
 
     }else if(arg == "-p" || arg == "--print") {
@@ -46,5 +50,6 @@ int main(int argv, char **argc) {
     }else {
         std::cout << "-h get more info" << std::endl;
     }
+
     return 0;
 }

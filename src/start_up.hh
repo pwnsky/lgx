@@ -18,6 +18,7 @@
 #include "log/log.hh"
 
 #include "util/util.hh"
+#include "security/firewall.hh"
 
 using logger = lgx::log::logger;
 
@@ -29,9 +30,9 @@ public:
     bool stop();
     bool load_config();
     bool run_logger_module();
+    bool run_security_module();
     bool run_network_module();
     void show_logo();
-
 
 private:
     int number_of_thread_;

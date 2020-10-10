@@ -1,4 +1,5 @@
 #include "net.hh"
+extern lgx::security::firewall *lgx::data::firewall;
 
 lgx::net::net::net(int port,int number_of_thread) :
     started_(false),
@@ -104,7 +105,7 @@ void lgx::net::net::handle_new_connection() {
          //      << '\n';
         // If the number of accept fd is greater than MAX_CONNECTED_FDS_NUM wiil be closed
         std::string client_ip = inet_ntoa(client_sockaddr.sin_addr);
-        if(util::wall(accept_fd, client_ip)) {
+        if(lgx::data::firewall->wall(accept_fd, client_ip)) {
             //std::cout << "forbiden: " << ntohs(client_sockaddr.sin_port) << '\n';
             logger() << "forbid: ip: " + client_ip + std::to_string(ntohs(client_sockaddr.sin_port));
             continue;
@@ -128,8 +129,7 @@ void lgx::net::net::handle_new_connection() {
 void lgx::net::net::stop() {
     base_eventloop_->quit();
     up_eventloop_threadpool_->stop();
-    //if(base_eventloop_)
-        //delete base_eventloop_;
+	std::cout << "stop net module\n";
 }
 
 void lgx::net::net::handle_connected() {

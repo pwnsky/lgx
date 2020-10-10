@@ -101,15 +101,33 @@ using json = nlohmann::json;
 namespace crypto {
 class url;
 }
+
+namespace security {
+class firewall;
+}
+
+namespace db {
+namespace mysql {
+class sql;
+class query;
+class exception;
+}
+
+}
 // namespace data start
 namespace data {
 extern std::string root_path;
 extern std::string web_page;
 extern std::string web_404_page;
-extern std::map<std::string, std::string> firewall;
 extern std::string log_path;
-
 extern lgx::log::log *p_log;
+extern std::map<std::string, std::string> forbid_ips;
+extern lgx::security::firewall *firewall;
+namespace mysql {
+    extern lgx::db::mysql::sql *sql;
+    extern lgx::thread::mutex_lock lock;
+}
+
 }
 // namespace data end
 
