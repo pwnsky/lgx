@@ -11,6 +11,8 @@
 #include "../util/util.hh"
 #include "../thread/mutex_lock.hh"
 #include <atomic>
+#include <sys/sem.h>
+#include <semaphore.h>
 
 extern lgx::log::log *lgx::data::p_log;
 extern std::string lgx::data::log_path;
@@ -19,15 +21,19 @@ extern std::string lgx::data::log_path;
 // handling in log eventloop thread
 class lgx::log::io {
 public:
+    io();
+    ~io();
     void close();
     void open(const std::string &log_path);
     void write();
     void push(const std::string &log);
+    std::atomic<int> nums_;
 private:
     int log_fd_ = -1;
     std::queue<std::string> logs_;
     lgx::thread::mutex_lock mutex_lock_;
-    std::atomic<bool> is_push_;
+
+
 };
 
 class lgx::log::log {

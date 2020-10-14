@@ -3,7 +3,6 @@
 #include "../../thread/mutex_lock.hh"
 #include "sql.hh"
 #include <exception>
-#include <semaphore.h>
 extern lgx::db::mysql::sql *lgx::data::mysql::sql;
 extern lgx::thread::mutex_lock lgx::data::mysql::lock;
 class lgx::db::mysql::query {
