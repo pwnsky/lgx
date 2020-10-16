@@ -67,4 +67,8 @@ private:
     void response(ResponseCode error_code);
     bool is_dir(const std::string &path);
     std::string get_date_time();
+
+    /*logcal: */
+    void client_get_datetime();
+    void client_get_info();
 };

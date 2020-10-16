@@ -109,6 +109,10 @@ public:
     eventloop *get_eventloop();
     void handle_close();
     void new_evnet();
+    void set_client_info(const std::string &ip, const std::string &port) {
+        map_header_info_["client_ip"] = ip;
+        map_header_info_["client_port"] = port;
+    }
 
 private:
     int fd_;

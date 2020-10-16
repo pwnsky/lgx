@@ -102,15 +102,15 @@ void lgx::net::net::handle_new_connection() {
     int accept_fd = 0;
     while((accept_fd = accept(listen_fd, (struct sockaddr *)&client_sockaddr, &client_sockaddr_len)) > 0) {
         //d_cout << "new connection: " << inet_ntoa(client_sockaddr.sin_addr) << " : " << ntohs(client_sockaddr.sin_port) << "\n";
-         //      << '\n';
         // If the number of accept fd is greater than MAX_CONNECTED_FDS_NUM wiil be closed
         std::string client_ip = inet_ntoa(client_sockaddr.sin_addr);
+        std::string client_port = std::to_string(ntohs(client_sockaddr.sin_port));
         if(lgx::data::firewall->wall(accept_fd, client_ip)) {
             //std::cout << "forbiden: " << ntohs(client_sockaddr.sin_port) << '\n';
-            logger() << "forbid: ip: " + client_ip + std::to_string(ntohs(client_sockaddr.sin_port));
+            logger() << "forbid: ip: " + client_ip + ":" +  client_port;
             continue;
         }
-        logger() << "connected: ip: " + client_ip + std::to_string(ntohs(client_sockaddr.sin_port));
+        logger() << "connected: ip: " + client_ip + ":" + client_port;
         if(!util::set_fd_nonblocking(accept_fd)) {
             d_cout << "set fd nonblocking error\n";
         }
@@ -120,6 +120,7 @@ void lgx::net::net::handle_new_connection() {
         //d_cout << "handle new connection\n";
         eventloop *next_eventloop = up_eventloop_threadpool_->get_next_eventloop();
         sp_http sph(new http(accept_fd, next_eventloop));
+        sph->set_client_info(client_ip, client_port);
         sph->get_sp_channel()->set_holder(sph);
         next_eventloop->push_back(std::bind(&http::new_evnet, sph));
     }

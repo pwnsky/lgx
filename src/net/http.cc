@@ -1,4 +1,3 @@
-
 #include "http.hh"
 
 std::unordered_map<std::string, std::string> lgx::net::http_content_type::umap_type_;
@@ -104,7 +103,6 @@ void lgx::net::http::unbind_timer() {
 void lgx::net::http::handle_read() {
     __uint32_t &event = sp_channel_->get_event();
     do {
-        //std::cout << "out_buf capacity: " << out_buffer_.capacity() << "\n";
         int read_len = lgx::net::util::read(fd_, in_buffer_);
         //std::cout << "http_content:__[" << in_buffer_ << "]__";
         //if state as disconnecting will clean th in buffer
@@ -115,7 +113,6 @@ void lgx::net::http::handle_read() {
         }
         if(read_len == 0) {
             http_connection_state_ = HttpConnectionState::DISCONNECTING;
-            //std::cout << "recv 0 DISCONNECTING\n";
             in_buffer_.clear();
             break;
         }else if(read_len < 0) { // Read data error

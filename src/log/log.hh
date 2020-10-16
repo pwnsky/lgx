@@ -9,7 +9,7 @@
 #include <time.h>
 #include <sys/time.h>
 #include "../util/util.hh"
-#include "../thread/mutex_lock.hh"
+#include "../thread/condition.hh"
 #include <atomic>
 #include <sys/sem.h>
 #include <semaphore.h>
@@ -27,11 +27,11 @@ public:
     void open(const std::string &log_path);
     void write();
     void push(const std::string &log);
-    std::atomic<int> nums_;
+    void wait();
 private:
     int log_fd_ = -1;
     std::queue<std::string> logs_;
-    lgx::thread::mutex_lock mutex_lock_;
+    lgx::thread::mutex_lock write_mutex_lock_; //avoid call write at same time
 
 
 };
@@ -47,12 +47,15 @@ public:
     }
     void push(const std::string &log) {
         io_.push(log);
+        cond_.signal();
     }
 
 private:
     std::atomic<bool> quit_;
     io io_;
     std::string log_path_;
+    lgx::thread::mutex_lock log_wait_;
+    lgx::thread::condition cond_;
 };
 
 class lgx::log::logger {

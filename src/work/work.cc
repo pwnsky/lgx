@@ -51,15 +51,24 @@ void lgx::work::work::run() {
 void lgx::work::work::handle_get() {
     bool error = false;
     std::string path;
+    bool get_file = true;
     try {
         path = map_url_info_.at("path");
     }  catch (std::out_of_range e) {
         std::cout << "map_header_info_[url]" << e.what() << '\n';
         error = true;
     }
+
     do {
-        if(is_dir(path))
+        if(is_dir(path) && request_.empty())
             path = lgx::data::root_path + path + lgx::data::web_page;
+        else if(request_ == "get_datatime") {
+            client_get_datetime();
+            get_file = false;
+        }else if(request_ == "get_info") {
+            client_get_info();
+            get_file = false;
+        }
         else
             path = lgx::data::root_path + path;
     } while(false);
@@ -67,8 +76,9 @@ void lgx::work::work::handle_get() {
     if(error) {
         std::cout << "error\n";
         handle_not_found();
-    }else
+    }else if(get_file)
         send_file(path);
+
 }
 bool lgx::work::work::is_dir(const std::string &path) {
     if(path.size() < 1)
@@ -172,6 +182,18 @@ std::string lgx::work::work::get_date_time() {
     struct tm *p_time = localtime(&time);
     strftime(time_str, 128, "%Y-%m-%d %H:%M:%S", p_time);
     return std::string(time_str);
+}
+
+void lgx::work::work::client_get_datetime() {
+    send_data(".html", get_date_time());
+}
+
+void lgx::work::work::client_get_info() {
+    std::string info;
+    info += "your ip: ";
+    info += map_header_info_.at("client_ip");
+    info += ":" + map_header_info_.at("client_port") + "\n";
+    send_data(".html", get_date_time());
 }
 
 

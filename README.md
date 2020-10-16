@@ -113,7 +113,7 @@ If you configured the file,you can restart server directly, not to recomplie the
 
 2020-10-03: Fix server breakdown when access web frequently (BUG: The log module is not synchronized)
 
-
+2020-10-16: Set logger module  thread blocking avoids a lot of CPU usage
 
 ## LGX CVE LIST
 

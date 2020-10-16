@@ -18,7 +18,7 @@
 #define EPOLL_WAIT_TIME 10000
 #define MAX_BUF_SIZE 4096
 
-#define LGX_VERSION "1.4"
+#define LGX_VERSION "1.5"
 #define SERVER_NAME "lgx-linux" LGX_VERSION
 
 namespace lgx {
