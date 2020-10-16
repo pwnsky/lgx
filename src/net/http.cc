@@ -291,7 +291,7 @@ lgx::net::HttpParseHeaderResult lgx::net::http::parse_header() {
 }
 
 void lgx::net::http::handle_work() {
-    lgx::work::work w(map_header_info_, in_content_buffer_);
+    lgx::work::work w(map_header_info_, map_client_info_, in_content_buffer_);
     w.set_fd(fd_);
     w.set_send_data_handler(std::bind(&http::send_data, this, std::placeholders::_1, std::placeholders::_2));
     w.set_send_file_handler(std::bind(&http::send_file, this, std::placeholders::_1));

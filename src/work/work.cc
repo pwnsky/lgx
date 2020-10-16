@@ -4,11 +4,15 @@ std::string lgx::data::root_path;
 std::string lgx::data::web_page;
 std::string lgx::data::web_404_page;
 
-lgx::work::work::work(const std::map<std::string, std::string> &map_header_info, std::string &content) :
+lgx::work::work::work(const std::map<std::string, std::string> &map_header_info,
+                      const std::map<std::string, std::string> &map_client_info,
+                      std::string &content) :
     map_header_info_(map_header_info),
+    map_client_info_(map_client_info),
     content_(content),
     send_file_handler_(nullptr),
     send_data_handler_(nullptr){
+
 }
 
 void lgx::work::work::set_fd(int fd) {
@@ -34,8 +38,8 @@ void lgx::work::work::run() {
         return;
     }
     try {
-        platform_ = map_url_value_info_.at("platform");
         request_ = map_url_value_info_.at("request");
+        platform_ = map_url_value_info_.at("platform");
     } catch (std::out_of_range e) {}
     logger() << "request: " + http_method;
     //std::cout << "method: "<< http_method << " url:[" << map_url_info_["url"] << "]\n";
@@ -58,9 +62,9 @@ void lgx::work::work::handle_get() {
         std::cout << "map_header_info_[url]" << e.what() << '\n';
         error = true;
     }
-
+    bool dir = is_dir(path);
     do {
-        if(is_dir(path) && request_.empty())
+        if(dir && request_.empty())
             path = lgx::data::root_path + path + lgx::data::web_page;
         else if(request_ == "get_datatime") {
             client_get_datetime();
@@ -69,8 +73,12 @@ void lgx::work::work::handle_get() {
             client_get_info();
             get_file = false;
         }
-        else
-            path = lgx::data::root_path + path;
+        else {
+            if(dir)
+                path = lgx::data::root_path + path + lgx::data::web_page;
+            else
+                path = lgx::data::root_path + path;
+        }
     } while(false);
     // Send get file
     if(error) {
@@ -185,15 +193,37 @@ std::string lgx::work::work::get_date_time() {
 }
 
 void lgx::work::work::client_get_datetime() {
-    send_data(".html", get_date_time());
+    json json_obj = {
+        { "server", SERVER_NAME },
+        { "request", request_ },
+        { "code", ResponseCode::SUCCESS },
+        { "datetime" , get_date_time() },
+        { "content" , get_date_time() }
+    };
+    send_json(json_obj);
 }
 
 void lgx::work::work::client_get_info() {
-    std::string info;
-    info += "your ip: ";
-    info += map_header_info_.at("client_ip");
-    info += ":" + map_header_info_.at("client_port") + "\n";
-    send_data(".html", get_date_time());
+    std::string client_ip;
+    std::string client_port;
+    try {
+        client_ip = map_client_info_.at("client_ip");
+        client_port = map_client_info_.at("client_port");
+    }  catch (std::out_of_range e) {}
+    json json_obj = {
+        { "server", SERVER_NAME },
+        { "request", request_ },
+        { "code", ResponseCode::SUCCESS },
+        { "datetime" , get_date_time() },
+        { "content" , {
+              { "client_ip", client_ip },
+              { "client_port", client_port },
+              { "server_name", SERVER_NAME },
+              { "server_version", LGX_VERSION },
+              { "github", "https://github.com/i0gan/lgx" }
+          }}
+    };
+    send_json(json_obj);
 }
 
 

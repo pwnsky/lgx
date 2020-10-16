@@ -38,7 +38,9 @@ enum class lgx::work::ResponseCode {
 class lgx::work::work {
     using json = lgx::third::json;
 public:
-    explicit work(const std::map<std::string, std::string> &map_header_info, std::string &content); // uid for deal with offline
+    explicit work(const std::map<std::string, std::string> &map_header_info,
+                  const std::map<std::string, std::string> &map_client_info_,
+                  std::string &content); // uid for deal with offline
     ~work() {};
     void set_send_data_handler(lgx::util::callback2 send_data_handler);
     void set_error_handler(lgx::util::callback2 error_handler);
@@ -50,6 +52,7 @@ public:
     void handle_put();
 private:
     const std::map<std::string, std::string> &map_header_info_;
+    const std::map<std::string, std::string> &map_client_info_;
     std::string &content_;
     lgx::util::callback1 send_file_handler_;
     lgx::util::callback2 send_data_handler_;
@@ -68,7 +71,7 @@ private:
     bool is_dir(const std::string &path);
     std::string get_date_time();
 
-    /*logcal: */
+    /*logic*/
     void client_get_datetime();
     void client_get_info();
 };

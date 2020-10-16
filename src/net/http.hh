@@ -110,8 +110,8 @@ public:
     void handle_close();
     void new_evnet();
     void set_client_info(const std::string &ip, const std::string &port) {
-        map_header_info_["client_ip"] = ip;
-        map_header_info_["client_port"] = port;
+        map_client_info_["client_ip"] = ip;
+        map_client_info_["client_port"] = port;
     }
 
 private:
@@ -129,6 +129,7 @@ private:
     bool keep_alive_;
     std::map<std::string, std::string> map_header_info_;
     std::weak_ptr<timer> wp_timer_;
+    std::map<std::string, std::string> map_client_info_;
 
     void handle_read();
     void handle_write();
