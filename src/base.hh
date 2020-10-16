@@ -113,6 +113,11 @@ class query;
 class exception;
 }
 
+namespace sqlite {
+class sql;
+class query;
+class exception;
+}
 }
 // namespace data start
 namespace data {
@@ -125,6 +130,11 @@ extern std::map<std::string, std::string> forbid_ips;
 extern lgx::security::firewall *firewall;
 namespace mysql {
     extern lgx::db::mysql::sql *sql;
+    extern lgx::thread::mutex_lock lock;
+}
+
+namespace sqlite {
+    extern lgx::db::sqlite::sql *sql;
     extern lgx::thread::mutex_lock lock;
 }
 

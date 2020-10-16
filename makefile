@@ -2,10 +2,11 @@
 # Create time: 2020-08-26
 # Author: i0gan
 
+GCC     := gcc
 CC      := g++ 
 TARGET  := lgx
-CFLAGS  := -g -O3 -std=c++14 
-LDFLAGS := -lpthread
+CFLAGS  := -g -O3 -std=c++14  --static
+LDFLAGS := -lpthread -ldl
 RM := rm -f 
 CP := cp -r
 MKDIR := mkdir
@@ -20,13 +21,19 @@ NET_PATH    :=  ./src/net
 THREAD_PATH :=  ./src/thread
 WORK_PATH   :=  ./src/work
 LOG_PATH    :=  ./src/log
-JSON_PATH   :=  ./src/json
+THIRD_PATH  :=  ./src/third
 UTIL_PATH   :=  ./src/util
 SECURITY_PATH := ./src/security
 MAIN_PATH   :=  ./src
 DB_MYSQL_PATH := ./src/db/mysql
+DB_SQLITE_PATH := ./src/db/sqlite
 #LDFLAGS += lmysqlclient
-
+#---------------------COBJ-------------------------
+# sqlite
+COBJS :=
+C_THIRD_SRC := $(wildcard $(THIRD_PATH)/*.c)  
+C_THIRD_OBJ += $(patsubst %.c, %.o, $(C_THIRD_SRC))
+COBJS += $(C_THIRD_OBJ)
 
 #---------------------OBJ-------------------------
 OBJS :=
@@ -71,8 +78,13 @@ OBJS += $(SECURITY_OBJ)
 #DB_MYSQL_OBJ := $(patsubst %.cc, %.o, $(DB_MYSQL_SRC)) 
 #OBJS += $(DB_MYSQL_OBJ)
 
+# sqlite src
+DB_SQLITE_SRC := $(wildcard $(DB_SQLITE_PATH)/*.cc)  
+DB_SQLITE_OBJ := $(patsubst %.cc, %.o, $(DB_SQLITE_SRC)) 
+OBJS += $(DB_SQLITE_OBJ)
+
 # complie
-$(TARGET):$(OBJS)
+$(TARGET):$(COBJS) $(OBJS)
 	@echo -e "\033[33m\t linking all \033[0m"
 	$(CC) $^ -o $(BUILD_PATH)/$@ $(LDFLAGS) $(CFLAGS) 
 	@echo -e "\033[34m\t finished \033[0m"
@@ -80,12 +92,16 @@ $(TARGET):$(OBJS)
 $(OBJS):%.o:%.cc
 	$(CC) -c $^ -o $@
 
+$(COBJS):%.o:%.c
+	$(GCC) -c $^ -o $@
+
 print:
-	@echo $(OBJS)	
+	@echo $(COBJS)
+#@echo $(OBJS)
 
 .PHONY:clean
 clean:
-	$(RM) $(BUILD_PATH)/$(TARGET) $(OBJS)
+	$(RM) $(BUILD_PATH)/$(TARGET) $(OBJS) $(COBJS)
 	$(RM) $(BUILD_PATH)/lgx.log
 
 install:
