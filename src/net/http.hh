@@ -16,6 +16,7 @@
 #include "../work/work.hh"
 #include "../util/vessel.hh"
 #include "../log/log.hh"
+#include "../security/firewall.hh"
 
 using logger = lgx::log::logger;
 
@@ -112,6 +113,8 @@ public:
     void set_client_info(const std::string &ip, const std::string &port) {
         map_client_info_["client_ip"] = ip;
         map_client_info_["client_port"] = port;
+        client_ip_ = ip;
+        client_port_ = port;
     }
 
 private:
@@ -129,12 +132,17 @@ private:
     bool keep_alive_;
     std::map<std::string, std::string> map_header_info_;
     std::weak_ptr<timer> wp_timer_;
+    std::string client_ip_;
+    std::string client_port_;
     std::map<std::string, std::string> map_client_info_;
+    size_t error_times_ = 0; // for avoid attack
+    size_t not_found_times_ = 0;
 
     void handle_read();
     void handle_write();
     void handle_connect();
     void handle_error(int error_number, std::string message);
+    void handle_not_found();
     HttpParseHeaderResult parse_header();
 
     void handle_work();
@@ -142,4 +150,5 @@ private:
     void send_data(const std::string &type,const std::string &content);
     void send_file(const std::string &file_name);
     void str_lower(std::string &str);
+    void redirect(const std::string &url);
 };

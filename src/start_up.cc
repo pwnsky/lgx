@@ -6,7 +6,7 @@ extern std::string lgx::data::web_404_page;
 extern lgx::log::log *lgx::data::p_log;
 extern std::string lgx::data::log_path;
 
-std::map<std::string, std::string> lgx::data::forbid_ips;
+std::vector<std::string> lgx::data::forbid_ips;
 lgx::security::firewall *lgx::data::firewall = nullptr;
 
 lgx::start_up::start_up() :
@@ -39,16 +39,19 @@ bool lgx::start_up::run() {
     do {
         if(load_config() == false) {
             std::cout << "Load config file failed!\n" << std::endl;
+            logger() << log_dbg("Load config file failed!");
             break;
         }
 
         if(run_security_module() == false) {
             std::cout << "Run security module failed\n" << std::endl;
+            logger() << log_dbg("Run security module failed!");
             break;
         }
 
         if(run_logger_module() == false) {
             std::cout << "Run logger module failed\n" << std::endl;
+            logger() << log_dbg("Run logger module failed!");
             break;
         }
 
@@ -56,6 +59,7 @@ bool lgx::start_up::run() {
         std::cout << "\nlgx port: " << port_ << "  number of thread: " << number_of_thread_ << '\n';
         if(false == this->run_network_module()) {
             std::cout << "Run network module failed!\n";
+            logger() << log_dbg("Run network module failed!");
             break;
         }
         error = false;
@@ -106,7 +110,7 @@ bool lgx::start_up::load_config() {
             d_cout << e.what() << '\n';
             return false;
         }
-        lgx::data::firewall->forbid(ip_key, ip);
+        lgx::data::firewall->forbid(ip);
     }
     return true;
 }

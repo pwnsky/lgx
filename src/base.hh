@@ -13,12 +13,14 @@
 #define DEFAULT_CONFIG_FILE "./etc/config.json"
 
 #define d_cout std::cout << "[" << __FILE__ << " line: " << __LINE__ << " thread id: " << std::hex <<  pthread_self() << std::oct << "] "
+#define log_dbg(x) "LGX DEBUG:" + std::string(__FILE__) + ":" + std::to_string(__LINE__) + "\n" + std::string(x)
+
 #define MAX_CONNECTED_FDS_NUM 100000
 #define EPOLL_MAX_EVENT_NUM  4096
 #define EPOLL_WAIT_TIME 10000
 #define MAX_BUF_SIZE 4096
 
-#define LGX_VERSION "1.5"
+#define LGX_VERSION "1.6"
 #define SERVER_NAME "lgx-linux" LGX_VERSION
 
 namespace lgx {
@@ -126,7 +128,7 @@ extern std::string web_page;
 extern std::string web_404_page;
 extern std::string log_path;
 extern lgx::log::log *p_log;
-extern std::map<std::string, std::string> forbid_ips;
+extern std::vector<std::string> forbid_ips;
 extern lgx::security::firewall *firewall;
 namespace mysql {
     extern lgx::db::mysql::sql *sql;

@@ -107,10 +107,10 @@ void lgx::net::net::handle_new_connection() {
         std::string client_port = std::to_string(ntohs(client_sockaddr.sin_port));
         if(lgx::data::firewall->wall(accept_fd, client_ip)) {
             //std::cout << "forbiden: " << ntohs(client_sockaddr.sin_port) << '\n';
-            logger() << "forbid: ip: " + client_ip + ":" +  client_port;
+            logger() << "FORBID IP: " + client_ip + ":" +  client_port;
             continue;
         }
-        logger() << "connected: ip: " + client_ip + ":" + client_port;
+        logger() << "-----------------------NEW CONNECTED CLIENT: " + client_ip + ":" + client_port + "------------------------";
         if(!util::set_fd_nonblocking(accept_fd)) {
             d_cout << "set fd nonblocking error\n";
         }

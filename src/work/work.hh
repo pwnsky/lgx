@@ -40,7 +40,7 @@ class lgx::work::work {
 public:
     explicit work(const std::map<std::string, std::string> &map_header_info,
                   const std::map<std::string, std::string> &map_client_info_,
-                  std::string &content); // uid for deal with offline
+                  std::string &content, size_t &error_times); // uid for deal with offline
     ~work() {};
     void set_send_data_handler(lgx::util::callback2 send_data_handler);
     void set_error_handler(lgx::util::callback2 error_handler);
@@ -50,10 +50,12 @@ public:
     void handle_get();
     void handle_post();
     void handle_put();
+
 private:
     const std::map<std::string, std::string> &map_header_info_;
     const std::map<std::string, std::string> &map_client_info_;
     std::string &content_;
+    size_t &error_times_;
     lgx::util::callback1 send_file_handler_;
     lgx::util::callback2 send_data_handler_;
     lgx::util::callback2 error_handler_;
@@ -61,6 +63,7 @@ private:
     std::map<std::string, std::string> map_url_value_info_;
     std::string request_;
     std::string platform_;
+
     int fd_;
     void send_data(const std::string &suffix, const std::string &content);
     void send_json(lgx::third::json &json_obj);

@@ -6,12 +6,13 @@ std::string lgx::data::web_404_page;
 
 lgx::work::work::work(const std::map<std::string, std::string> &map_header_info,
                       const std::map<std::string, std::string> &map_client_info,
-                      std::string &content) :
+                      std::string &content, size_t &error_times) :
     map_header_info_(map_header_info),
     map_client_info_(map_client_info),
     content_(content),
+    error_times_(error_times),
     send_file_handler_(nullptr),
-    send_data_handler_(nullptr){
+    send_data_handler_(nullptr) {
 
 }
 
@@ -30,10 +31,15 @@ void lgx::work::work::run() {
     std::string http_method;
     try {
         http_method = map_header_info_.at("method");
-    } catch (std::out_of_range e) { std::cout << "no method\n"; }
+    } catch (std::out_of_range e) {
+        logger() << log_dbg("no http method" + std::string(e.what()) + '\n');
+        error_times_ ++;
+        return;
+    }
 
     if(parse_url() == false) {
-        logger() << "ERROR_PARSING_URL: ";
+        logger() << log_dbg("ERROR_PARSING_URL");
+        error_times_ ++;
         response(ResponseCode::ERROR_PARSING_URL);
         return;
     }
@@ -41,7 +47,6 @@ void lgx::work::work::run() {
         request_ = map_url_value_info_.at("request");
         platform_ = map_url_value_info_.at("platform");
     } catch (std::out_of_range e) {}
-    logger() << "request: " + http_method;
     //std::cout << "method: "<< http_method << " url:[" << map_url_info_["url"] << "]\n";
     if(http_method == "get") {
         handle_get();
@@ -53,15 +58,16 @@ void lgx::work::work::run() {
 }
 
 void lgx::work::work::handle_get() {
-    bool error = false;
     std::string path;
     bool get_file = true;
     try {
         path = map_url_info_.at("path");
     }  catch (std::out_of_range e) {
-        std::cout << "map_header_info_[url]" << e.what() << '\n';
-        error = true;
+        logger() << log_dbg("map_header_info_[url]" + std::string(e.what()) + '\n');
+        error_times_ ++;
+        return;
     }
+
     bool dir = is_dir(path);
     do {
         if(dir && request_.empty())
@@ -81,10 +87,7 @@ void lgx::work::work::handle_get() {
         }
     } while(false);
     // Send get file
-    if(error) {
-        std::cout << "error\n";
-        handle_not_found();
-    }else if(get_file)
+    if(get_file)
         send_file(path);
 
 }
@@ -108,7 +111,7 @@ bool lgx::work::work::parse_url() {
     try {
         url = map_header_info_.at("url");
     } catch (std::out_of_range e) {
-        std::cout << "map_header_info_[url]" << e.what() << '\n';
+        logger() << log_dbg("map_header_info_[url]" + std::string(e.what()) + '\n');
         return false;
     }
     map_url_info_["orignal_url"] = url;
@@ -119,9 +122,7 @@ bool lgx::work::work::parse_url() {
     if(first_value_pos > 0) {
         value_url = url.substr(first_value_pos + 1);
         path = url.substr(0, first_value_pos);
-        if(path != "/" && path.size() > 0) {
-            path.pop_back();
-        }
+
     }else {
         path = url;
     }

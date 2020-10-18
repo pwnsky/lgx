@@ -5,7 +5,7 @@ pthread_once_t lgx::net::http_content_type::once_control_;
 
 const __uint32_t EPOLL_DEFAULT_EVENT = EPOLLIN | EPOLLET | EPOLLONESHOT;
 const int DEFAULT_EXPIRED_TIME = 2000;              //ms
-const int DEFAULT_KEEP_ALIVE_TIME = 5 * 60 * 1000;  //ms
+const int DEFAULT_KEEP_ALIVE_TIME = 3 * 60 * 1000;  //ms
 
 void lgx::net::http_content_type::init() {
     //std::cout << "ptrhead_init";
@@ -102,9 +102,17 @@ void lgx::net::http::unbind_timer() {
 }
 void lgx::net::http::handle_read() {
     __uint32_t &event = sp_channel_->get_event();
+    if(error_times_ > 0 || not_found_times_ > 10) {  // check is attacked
+        lgx::net::util::shutdown_read_fd(fd_);
+        lgx::data::firewall->forbid(client_ip_);
+        logger() << "FORBID IP: " + client_ip_ + ":" +  client_port_;
+        event = EPOLLET;
+        return;
+    }
+
     do {
         int read_len = lgx::net::util::read(fd_, in_buffer_);
-        //std::cout << "http_content:__[" << in_buffer_ << "]__";
+        logger() << "read data from " + client_ip_ + ":" + client_port_;
         //if state as disconnecting will clean th in buffer
         if(http_connection_state_ == HttpConnectionState::DISCONNECTING) {
             //std::cout << "DISCONNECTING\n";
@@ -123,11 +131,14 @@ void lgx::net::http::handle_read() {
 
         // Parse http header
         if(http_process_state_ == HttpRecvState::PARSE_HEADER) {
+            logger() << "HTTP HEADER:\n["
+                        + in_buffer_ + "]"; // Write http header to log
             HttpParseHeaderResult http_parse_header_result = parse_header();
             if(http_parse_header_result == HttpParseHeaderResult::ERROR) {
-                perror("ParseHeader ");
+                logger() << "PARSEHEADER_ERROR";
                 recv_error_ = true;
                 handle_error((int)HttpResponseCode::BAD_REQUEST, "Bad Request");
+                error_times_ ++;
                 break;
             }
             // Judget if have content data
@@ -141,12 +152,14 @@ void lgx::net::http::handle_read() {
                     std::cout << "not found contnt-length\n";
                     recv_error_ = true;
                     handle_error((int)HttpResponseCode::BAD_REQUEST, "Bad Request");
+                    error_times_ ++;
                     break;
                 }
                 if(content_length_ < 0) {
                     std::cout << "not found contnt-length\n";
                     recv_error_ = true;
                     handle_error((int)HttpResponseCode::BAD_REQUEST, "Bad Request");
+                    error_times_ ++;
                     break;
                 }
                 //std::cout << "have body data: Cotent-length: " << content_length_ << '\n';
@@ -156,11 +169,9 @@ void lgx::net::http::handle_read() {
 
         // Recv body data
         if(http_process_state_ == HttpRecvState::RECV_CONTENT) {
-            //std::cout << "recved body data\n";
             // Get content length
             in_content_buffer_ += in_buffer_;
             if(!recv_error_ && static_cast<int>(in_content_buffer_.size()) >= content_length_) {
-                //std::cout << "content: __[[" << in_content_buffer_ << "]]__";
                 http_process_state_ = HttpRecvState::WORK;
             }
         }
@@ -179,7 +190,7 @@ void lgx::net::http::handle_read() {
     // end
     if(http_process_state_ == HttpRecvState::FINISH) {
         this->reset();
-    //if network is disconnected, do not to clean write data buffer, may be it reconnected
+        //if network is disconnected, do not to clean write data buffer, may be it reconnected
     } else if (!recv_error_ && http_connection_state_ == HttpConnectionState::DISCONNECTED) {
         event |= EPOLLIN;
     }
@@ -224,6 +235,7 @@ lgx::net::HttpParseHeaderResult lgx::net::http::parse_header() {
                 map_header_info_["method"] = "delete";
                 break;
             } else {
+                map_header_info_["method"] = "unknown";
                 break;
             }
         } while(false);
@@ -291,7 +303,7 @@ lgx::net::HttpParseHeaderResult lgx::net::http::parse_header() {
 }
 
 void lgx::net::http::handle_work() {
-    lgx::work::work w(map_header_info_, map_client_info_, in_content_buffer_);
+    lgx::work::work w(map_header_info_, map_client_info_, in_content_buffer_, error_times_);
     w.set_fd(fd_);
     w.set_send_data_handler(std::bind(&http::send_data, this, std::placeholders::_1, std::placeholders::_2));
     w.set_send_file_handler(std::bind(&http::send_file, this, std::placeholders::_1));
@@ -313,10 +325,9 @@ void lgx::net::http::handle_write() {
         }
     }
 
-    if (out_buffer_.size() > 0) {
-        std::cout << "left size: " << out_buffer_.size() << "] end\n";
+    if (out_buffer_.size() > 0)
         event |= EPOLLOUT;
-    }
+
 }
 
 std::string lgx::net::http::get_suffix(std::string file_name) {
@@ -338,7 +349,7 @@ void lgx::net::http::send_data(const std::string &type,const std::string &conten
             (map_header_info_["connection"] == "keep-alive")) {
         keep_alive_ = true;
         out_buffer_ << std::string("Connection: Keep-Alive\r\n") + "Keep-Alive: timeout=" +
-                std::to_string(DEFAULT_KEEP_ALIVE_TIME) + "\r\n";
+                       std::to_string(DEFAULT_KEEP_ALIVE_TIME) + "\r\n";
     }
     out_buffer_ << "Server: " + std::string(SERVER_NAME) + "\r\n";
     out_buffer_ << "Access-Control-Allow-Origin: *\r\n";
@@ -357,10 +368,12 @@ void lgx::net::http::send_file(const std::string &file_name) {
         }
         int fd = open(file_name.c_str(), O_RDONLY);
         if(fd == -1) {
-            std::cout << "Open file [" << file_name << "] failed!\n";
-            handle_error((int)HttpResponseCode::NOT_FOUND, "Not found!");
+            logger() << log_dbg("Open file [" + file_name + "] failed!");
+            handle_not_found();
+            not_found_times_ ++;
             break;
         }
+
         struct stat stat_buf;
         if(fstat(fd, &stat_buf) == -1) {
             handle_error((int)HttpResponseCode::SEE_OTHER, "Internal server error");
@@ -368,6 +381,64 @@ void lgx::net::http::send_file(const std::string &file_name) {
             break;;
         }
 
+        // Check this file if as dir, if do not this, when mmap to read data, server will crashed!
+        if(S_ISDIR(stat_buf.st_mode)) {
+            std::string file_path = file_name.substr(lgx::data::root_path.size());
+            redirect(file_path + "/" + lgx::data::web_page); // redirect
+            close(fd);
+            break;
+        }
+
+        // get suffix name
+        out_buffer_.clear();
+        out_buffer_ << "HTTP/1.1 200 OK\r\n";
+        if (map_header_info_.find("connection") != map_header_info_.end() &&
+                (map_header_info_["connection"] == "keep-alive")) {
+            keep_alive_ = true;
+            out_buffer_ << std::string("Connection: Keep-Alive\r\n") + "Keep-Alive: timeout=" +
+                           std::to_string(DEFAULT_KEEP_ALIVE_TIME) + "\r\n";
+        }
+        out_buffer_ << "Server: "  + std::string(SERVER_NAME) + "\r\n";
+        out_buffer_ << "Access-Control-Allow-Origin: *\r\n";
+        out_buffer_ << "Content-Type: " + http_content_type::get_type(get_suffix(file_name)) + "\r\n";
+        out_buffer_ << "Content-Length: " +  std::to_string(stat_buf.st_size) + "\r\n";
+        out_buffer_ << "\r\n";
+        // write header
+        void* file_mmap_ptr = mmap(nullptr, stat_buf.st_size, PROT_READ, MAP_PRIVATE, fd, 0);
+
+        if(!file_mmap_ptr) {
+            close(fd);
+            handle_error((int)HttpResponseCode::SEE_OTHER, "Internal server error");
+            break;
+        }
+        // Sended it is less than 100 MB
+        if(stat_buf.st_size < (1024 * 1024 * 100)) {
+            out_buffer_.append(file_mmap_ptr, stat_buf.st_size);
+            handle_write();
+        }
+        munmap(file_mmap_ptr, stat_buf.st_size);
+        close(fd);
+    } while(false);
+}
+
+void lgx::net::http::handle_not_found() {
+    std::string file_name = lgx::data::root_path + "/" + lgx::data::web_404_page;
+    do {
+        if(recv_error_ || http_connection_state_ == HttpConnectionState::DISCONNECTED) {
+            break;;
+        }
+        int fd = open(file_name.c_str(), O_RDONLY);
+        if(fd == -1) {
+            std::cout << "Open not found file [" << file_name << "] failed!\n";
+            handle_error((int)HttpResponseCode::NOT_FOUND, "404 LGX Not Found!");
+            break;
+        }
+        struct stat stat_buf;
+        if(fstat(fd, &stat_buf) == -1) {
+            handle_error((int)HttpResponseCode::SEE_OTHER, "Internal server error");
+            close(fd);
+            break;
+        }
         // Check this file if as dir, if do not this, when mmap to read data, server will crashed!
         if(S_ISDIR(stat_buf.st_mode)) {
             handle_error((int)HttpResponseCode::SEE_OTHER, "Error: dir can't get");
@@ -381,7 +452,7 @@ void lgx::net::http::send_file(const std::string &file_name) {
                 (map_header_info_["connection"] == "keep-alive")) {
             keep_alive_ = true;
             out_buffer_ << std::string("Connection: Keep-Alive\r\n") + "Keep-Alive: timeout=" +
-                    std::to_string(DEFAULT_KEEP_ALIVE_TIME) + "\r\n";
+                           std::to_string(DEFAULT_KEEP_ALIVE_TIME) + "\r\n";
         }
         out_buffer_ << "Server: "  + std::string(SERVER_NAME) + "\r\n";
         out_buffer_ << "Access-Control-Allow-Origin: *\r\n";
@@ -392,19 +463,15 @@ void lgx::net::http::send_file(const std::string &file_name) {
         void* file_mmap_ptr = mmap(nullptr, stat_buf.st_size, PROT_READ, MAP_PRIVATE, fd, 0);
 
         if(!file_mmap_ptr) {
+            close(fd);
             handle_error((int)HttpResponseCode::SEE_OTHER, "Internal server error");
             break;
         }
-        // Sended it is less than 100 MB
-        if(stat_buf.st_size < (1024 * 1024 * 100)) {
-            out_buffer_.append(file_mmap_ptr, stat_buf.st_size);
-            //wait
-            handle_write();
-            munmap(file_mmap_ptr, stat_buf.st_size);
-            close(fd);
-            break;
-        }
-        handle_error((int)HttpResponseCode::SEE_OTHER, "This file too big");
+
+        out_buffer_.append(file_mmap_ptr, stat_buf.st_size);
+        handle_write();
+        munmap(file_mmap_ptr, stat_buf.st_size);
+        close(fd);
     } while(false);
 }
 
@@ -442,7 +509,6 @@ void lgx::net::http::handle_connect() {
 }
 
 void lgx::net::http::handle_error(int error_number, std::string message) {
-
     out_buffer_.clear();
     message = " " + message;
     std::string header_buffer, body_buffer;
@@ -470,4 +536,18 @@ void lgx::net::http::str_lower(std::string &str) {
     for (size_t index = 0; index < str.size(); ++index) {
         str[index] = tolower(str[index]);
     }
+}
+
+void lgx::net::http::redirect(const std::string &url) {
+    out_buffer_.clear();
+    std::string header_buffer;
+    header_buffer += "HTTP/1.1 " + std::to_string(static_cast<int>(HttpResponseCode::MOVED_PERMANENTLY)) + "\r\n";
+    header_buffer += "Access-Control-Allow-Origin: *\r\n";
+    header_buffer += "Server: " + std::string(SERVER_NAME) + "\r\n";
+    header_buffer += "Connection: Keep-Alive\r\n";
+    header_buffer += "Location: " + url + "\r\n";
+    header_buffer += "Content-Length: 0\r\n";
+    header_buffer += "\r\n";
+    out_buffer_ << header_buffer;
+    handle_write();
 }

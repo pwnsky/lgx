@@ -26,7 +26,9 @@ HEADERS += \
     src/crypto/url.hh \
     src/security/firewall.hh \
     src/db/mysql/sql.hh \
-    src/db/mysql/query.hh
+    src/db/mysql/query.hh \
+    src/db/sqlite/sql.hh \
+    src/db/sqlite/query.hh
 
 SOURCES += \
     src/log/log.cc \
@@ -47,4 +49,6 @@ SOURCES += \
     src/work/work.cc \
     src/security/firewall.cc \
     src/db/mysql/sql.cc \
-    src/db/mysql/query.cc
+    src/db/mysql/query.cc \
+    src/db/sqlite/sql.cc \
+    src/db/sqlite/query.cc

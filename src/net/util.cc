@@ -154,3 +154,11 @@ void lgx::net::util::set_fd_nolinger(int fd) {
 void lgx::net::util::shutdown_write_fd(int fd) {
     shutdown(fd, SHUT_WR);
 }
+
+void lgx::net::util::shutdown_read_fd(int fd) {
+    shutdown(fd, SHUT_RD);
+}
+
+void lgx::net::util::shutdown_fd(int fd) {
+    shutdown(fd, SHUT_RDWR);
+}
