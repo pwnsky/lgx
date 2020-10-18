@@ -8,8 +8,6 @@ The lgx server is a high-performance static web server, written by c++ language.
 
 
 
-
-
 ## How to use lgx server
 
 You should make sure you have install compile environment as follows:
@@ -29,7 +27,7 @@ cd lgx
 Now you can compile with make
 ### compile
 ```
-make
+make -j 8
 ```
 
 ### run
@@ -41,7 +39,7 @@ chmod +x start && ./start
  Input ip address or domain you can access web to see as follows:
 
 ```
-Welcome to lgx server!
+Welcome to use lgx server!
 ```
 
 
@@ -117,13 +115,13 @@ If you configured the file,you can restart server directly, not to recomplie the
 
 2020-10-16: Add a sqlite database module
 
+2020-10-18: Reinforced firewall function (website has been attacked, detailed in CVE-2020-1018 )
+
 
 
 ## LGX CVE LIST
 
 [LIST](./vuls/cve.md)
-
-
 
 
 

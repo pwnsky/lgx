@@ -102,7 +102,7 @@ void lgx::net::http::unbind_timer() {
 }
 void lgx::net::http::handle_read() {
     __uint32_t &event = sp_channel_->get_event();
-    if(error_times_ > 0 || not_found_times_ > 10) {  // check is attacked
+    if(error_times_ > 0 || not_found_times_ > HTTP_MAX_NOT_FOUND_TIMES) {  // check is attacked
         lgx::net::util::shutdown_read_fd(fd_);
         lgx::data::firewall->forbid(client_ip_);
         logger() << "FORBID IP: " + client_ip_ + ":" +  client_port_;
@@ -447,7 +447,7 @@ void lgx::net::http::handle_not_found() {
         }
         // get suffix name
         out_buffer_.clear();
-        out_buffer_ << "HTTP/1.1 200 OK\r\n";
+        out_buffer_ << "HTTP/1.1 404 NOT FOUND\r\n";
         if (map_header_info_.find("connection") != map_header_info_.end() &&
                 (map_header_info_["connection"] == "keep-alive")) {
             keep_alive_ = true;
