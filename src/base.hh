@@ -15,14 +15,14 @@
 #define d_cout std::cout << "[" << __FILE__ << " line: " << __LINE__ << " thread id: " << std::hex <<  pthread_self() << std::oct << "] "
 #define log_dbg(x) "LGX DEBUG:" + std::string(__FILE__) + ":" + std::to_string(__LINE__) + "\n" + std::string(x)
 
-#define MAX_CONNECTED_FDS_NUM 100000
-#define EPOLL_MAX_EVENT_NUM  4096
-#define EPOLL_WAIT_TIME 10000
-#define MAX_BUF_SIZE 4096
+#define MAX_CONNECTED_FDS_NUM 0x100000
+#define EPOLL_MAX_EVENT_NUM   0x1000
+#define EPOLL_WAIT_TIME       0x1000
+#define MAX_BUF_SIZE          0x1000
 #define HTTP_MAX_NOT_FOUND_TIMES 25
 
 #define LGX_VERSION "1.6"
-#define SERVER_NAME "lgx-linux" LGX_VERSION
+#define SERVER_NAME "lgx-server" LGX_VERSION
 
 namespace lgx {
 namespace thread {

@@ -23,21 +23,18 @@ lgx::net::eventloop *lgx::net::eventloop_threadpool::get_next_eventloop() {
 }
 
 void lgx::net::eventloop_threadpool::start() {
-    base_eventloop_->assert_in_loop_thread();
-    std::cout << "start...\n";
     started_ = true;
+    base_eventloop_->assert_in_loop_thread();
     for(int idx = 0; idx < number_of_thread_; ++idx) {
         sp_eventloop_thread sp_elt(new eventloop_thread());
         sp_elt->set_name("thread eventloop " + std::to_string(idx));
         sp_elt->start_loop();
         v_sp_eventloop_threads_.push_back(sp_elt);
-        //store a new eventloop
-        //v_eventloops_.push_back(sp_elt->start_loop());
     }
 }
 
 void lgx::net::eventloop_threadpool::stop() {
-    started_ = true;
+    started_ = false;
     for(auto iter = v_sp_eventloop_threads_.begin(); iter != v_sp_eventloop_threads_.end(); ++iter) {
         sp_eventloop_thread et = *iter;
         et->stop_loop();

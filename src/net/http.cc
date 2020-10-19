@@ -110,6 +110,12 @@ void lgx::net::http::handle_read() {
         return;
     }
 
+    if(lgx::data::firewall->is_forbid(client_ip_)) {
+       lgx::net::util::shutdown_read_fd(fd_);
+       event = EPOLLET;
+       return;
+    }
+
     do {
         int read_len = lgx::net::util::read(fd_, in_buffer_);
         logger() << "read data from " + client_ip_ + ":" + client_port_;
@@ -149,14 +155,14 @@ void lgx::net::http::handle_read() {
                 if(map_header_info_.find("content-length") != map_header_info_.end()) {
                     content_length_ = std::stoi(map_header_info_["content-length"]);
                 } else {
-                    std::cout << "not found contnt-length\n";
+                    logger() << log_dbg("not found contnt-length");
                     recv_error_ = true;
                     handle_error((int)HttpResponseCode::BAD_REQUEST, "Bad Request");
                     error_times_ ++;
                     break;
                 }
                 if(content_length_ < 0) {
-                    std::cout << "not found contnt-length\n";
+                    logger() << log_dbg("not found contnt-length");
                     recv_error_ = true;
                     handle_error((int)HttpResponseCode::BAD_REQUEST, "Bad Request");
                     error_times_ ++;
@@ -429,13 +435,15 @@ void lgx::net::http::handle_not_found() {
         }
         int fd = open(file_name.c_str(), O_RDONLY);
         if(fd == -1) {
-            std::cout << "Open not found file [" << file_name << "] failed!\n";
+            std::cout << log_dbg("Open not found file [" + file_name + "] failed!\n");
+
             handle_error((int)HttpResponseCode::NOT_FOUND, "404 LGX Not Found!");
             break;
         }
         struct stat stat_buf;
         if(fstat(fd, &stat_buf) == -1) {
             handle_error((int)HttpResponseCode::SEE_OTHER, "Internal server error");
+            logger() << log_dbg("Internal server error");
             close(fd);
             break;
         }
@@ -465,6 +473,7 @@ void lgx::net::http::handle_not_found() {
         if(!file_mmap_ptr) {
             close(fd);
             handle_error((int)HttpResponseCode::SEE_OTHER, "Internal server error");
+            logger() << log_dbg("Internal server error");
             break;
         }
 

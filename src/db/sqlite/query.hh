@@ -17,7 +17,7 @@ public:
     bool binsert(const std::string &table_name, const std::string &key_sql, const std::string &value_sql);
     bool update(const std::string &table_name, const std::string &key_sql, const std::string &value_sql, const std::string &condition);
     bool remove(const std::string &table_name, const std::string &condition);
-    void operator=(query &mysql_res);
+    void operator=(query &sqlite_res);
     void   set_sqlite(sqlite3 *sqlite);
     sqlite3 *get_sqlite();
     static void escape(std::string &str);

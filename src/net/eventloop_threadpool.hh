@@ -16,6 +16,5 @@ private:
     eventloop *base_eventloop_;
     int number_of_thread_;
     int next_thread_indx_;
-    //std::vector<eventloop *> v_eventloops_;
     std::vector<sp_eventloop_thread> v_sp_eventloop_threads_;
 };

@@ -11,9 +11,9 @@ void lgx_exit(int s) {
 }
 
 void about() {
-    std::cout << "\033[40;31mauthor : i0gan\n\033[0m"
-              << "\033[40;31memail  : 418894113@qq.com\n\033[0m"
-              << "\033[40;31mweb    : i0gan.cn\n\033[0m";
+    std::cout << "\033[40;33mauthor : i0gan\n\033[0m"
+              << "\033[40;33memail  : 418894113@qq.com\n\033[0m"
+              << "\033[40;33mweb    : i0gan.cn\n\033[0m";
 }
 void init() {
     //std::ios::sync_with_stdio(false);

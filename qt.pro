@@ -3,6 +3,7 @@
 HEADERS += \
     src/base.hh \
     src/third/json.hh \
+    src/third/sqlite3.h \
     src/util/vessel.hh \
     src/util/util.hh \
     src/log/log.hh \
@@ -31,6 +32,7 @@ HEADERS += \
     src/db/sqlite/query.hh
 
 SOURCES += \
+    src/third/sqlite3.c \
     src/log/log.cc \
     src/log/log_thread.cc \
     src/util/util.cc \

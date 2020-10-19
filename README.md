@@ -1,4 +1,4 @@
-# LGX WEB SERVER
+# LGX C++ WEB SERVER
 
 
 
@@ -15,6 +15,7 @@ You should make sure you have install compile environment as follows:
 
 ```
 sudo apt install g++
+sudo apt install gcc
 sudo apt install make
 ```
 ### Get open source
@@ -25,12 +26,12 @@ git clone https://github.com/I0gan/lgx.git
 cd lgx
 ```
 Now you can compile with make
-### compile
+### Compile
 ```
 make -j 8
 ```
 
-### run
+### Run
 
 ```
 chmod +x start && ./start
@@ -88,8 +89,6 @@ firewall: forbid specific client to access server, for example:
 ```
 
 It means to forbid client with ip address as  "10.1.1.1" or "101.2.4.5" to access server 
-
-
 
 If you configured the file,you can restart server directly, not to recomplie the server again!
 
