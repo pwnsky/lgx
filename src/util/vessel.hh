@@ -63,7 +63,6 @@ public:
         memcpy(data_start_ptr + size_, data, size);
         size_ += size;
     }
-
     void append(void *data, size_t length) {
         size_t size = length;
         if(sub_ || size == 0) {
@@ -94,6 +93,53 @@ public:
         }else
             size_ -= size;
         data_start_ptr += size;
+    }
+    int find(char c) {
+        size_t i = 0;
+        for(i = 0; i < size_; ++i)
+            if(data_start_ptr[i] == c)
+                break;
+        if(i == size_)
+            return -1;
+        return i;
+    }
+
+    int find(const char *ts) {
+        const char *bp;
+        const char *sp;
+        const char *src = data_start_ptr;
+        for(size_t i = 0; i < size_; ++i) {
+            bp = src;
+            sp = ts;
+            do {
+                if(!*sp)
+                    return (int)(src - data_start_ptr);
+            } while(*bp ++ == *sp ++);
+            src ++;
+        }
+        return -1;
+    }
+
+    int find(const char *ts, int length) {
+        const char *bp;
+        const char *sp;
+        const char *src = data_start_ptr;
+        for(size_t i = 0; i < size_; ++i) {
+            bp = src;
+            sp = ts;
+            int len = 0;
+            do {
+                if(len == length)
+                    return (int)(src - data_start_ptr);
+                len ++;
+            } while(*bp ++ == *sp ++);
+            src ++;
+        }
+        return -1;
+    }
+
+    std::string get_string(int start, int length) {
+        return std::string(data_start_ptr + start, length);
     }
 
     void clear() {
