@@ -47,6 +47,28 @@ ssize_t lgx::net::util::read(int fd, std::string &in_buffer) {
     return read_sum;
 }
 
+ssize_t lgx::net::util::read(int fd, lgx::util::vessel &in_buffer) {
+    ssize_t read_len = 0;
+    ssize_t read_sum = 0;
+    char buffer[MAX_BUF_SIZE];
+
+    while(true) {
+        if((read_len = ::read(fd, buffer, MAX_BUF_SIZE)) < 0) {
+            if(errno == EINTR)
+                continue;
+            else if (errno == EAGAIN)
+                return read_sum;
+            else
+                return -1;
+        } else if (read_len == 0) {
+            return 0;
+        }
+        read_sum += read_len;
+        in_buffer.append(buffer, read_len);
+    }
+    return read_sum;
+}
+
 ssize_t lgx::net::util::read(int fd, std::string &in_buffer, int length) {
     ssize_t read_len = 0;
     ssize_t read_sum = 0;

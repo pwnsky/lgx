@@ -8,7 +8,6 @@ const int DEFAULT_EXPIRED_TIME = 2000;              //ms
 const int DEFAULT_KEEP_ALIVE_TIME = 3 * 60 * 1000;  //ms
 
 void lgx::net::http_content_type::init() {
-    //std::cout << "ptrhead_init";
     //init http content type
     http_content_type::umap_type_[".html"] = "text/html";
     http_content_type::umap_type_[".css"] = "text/css";
@@ -59,7 +58,6 @@ lgx::net::http::~http() {
 
 void lgx::net::http::reset() {
     http_process_state_ = HttpRecvState::PARSE_HEADER;
-    in_content_buffer_.clear();
     in_buffer_.clear();
     map_header_info_.clear();
     recv_error_ = false;
@@ -116,6 +114,11 @@ void lgx::net::http::handle_read() {
        return;
     }
 
+    if(out_buffer_.size() > MAX_HTTP_RECV_BUF_SIZE) {
+        handle_error((int)HttpResponseCode::NOT_ACCEPTABLE, "Bad recv size");
+        return;
+    }
+
     do {
         int read_len = lgx::net::util::read(fd_, in_buffer_);
         logger() << "read data from " + client_ip_ + ":" + client_port_;
@@ -137,9 +140,9 @@ void lgx::net::http::handle_read() {
 
         // Parse http header
         if(http_process_state_ == HttpRecvState::PARSE_HEADER) {
-            logger() << "HTTP HEADER:\n["
-                        + in_buffer_ + "]"; // Write http header to log
             HttpParseHeaderResult http_parse_header_result = parse_header();
+            // write http header to log
+            logger() << "HTTP HEADER:\n[" + header_data_ + "]";
             if(http_parse_header_result == HttpParseHeaderResult::ERROR) {
                 logger() << "PARSEHEADER_ERROR";
                 recv_error_ = true;
@@ -176,13 +179,13 @@ void lgx::net::http::handle_read() {
         // Recv body data
         if(http_process_state_ == HttpRecvState::RECV_CONTENT) {
             // Get content length
-            in_content_buffer_ += in_buffer_;
-            if(!recv_error_ && static_cast<int>(in_content_buffer_.size()) >= content_length_) {
+            if(!recv_error_ && static_cast<int>(in_buffer_.size()) >= content_length_) {
                 http_process_state_ = HttpRecvState::WORK;
             }
         }
 
         if(http_process_state_ == HttpRecvState::WORK) {
+            //std::cout << "left size: " << in_buffer_.size() << '\n';
             handle_work();
             in_buffer_.clear();
             http_process_state_ = HttpRecvState::FINISH;
@@ -203,20 +206,31 @@ void lgx::net::http::handle_read() {
 }
 
 lgx::net::HttpParseHeaderResult lgx::net::http::parse_header() {
-    std::string &recv_data = in_buffer_;
-    lgx::net::HttpParseHeaderResult  result = HttpParseHeaderResult::SUCCESS;
 
+    lgx::net::HttpParseHeaderResult  result = HttpParseHeaderResult::SUCCESS;
+    std::string header_left;
     int first_line_read_pos = 0;
     do {
-        first_line_read_pos = recv_data.find("\r\n");
+        int head_end_pos = in_buffer_.find_to_end("\r\n\r\n");
+        if(head_end_pos < 0) {
+            result = HttpParseHeaderResult::ERROR;
+            break;
+        }
+
+        header_data_ = in_buffer_.get_string(0, head_end_pos);
+        header_left = header_data_;
+
+        in_buffer_.sub(head_end_pos); // sub header data
+
+        first_line_read_pos = header_left.find("\r\n");
         if(first_line_read_pos < 0) {
             result = HttpParseHeaderResult::ERROR;
             break;
         }
-        std::string header_line_1 = recv_data.substr(0, first_line_read_pos);
-        if(static_cast<int>(recv_data.size()) > first_line_read_pos + 2)
+        std::string header_line_1 = header_left.substr(0, first_line_read_pos);
+        if(static_cast<int>(header_left.size()) > first_line_read_pos + 2)
             // sub first line str
-            recv_data = recv_data.substr(first_line_read_pos + 2);
+            header_left = header_left.substr(first_line_read_pos + 2);
         else {
             result = HttpParseHeaderResult::ERROR;
             break;
@@ -282,14 +296,14 @@ lgx::net::HttpParseHeaderResult lgx::net::http::parse_header() {
     // Parse header key and value
     while(true) {
         int key_end_pos = -1, value_start_pos = -1;
-        key_end_pos = recv_data.find("\r\n");
+        key_end_pos = header_left.find("\r\n");
         if(key_end_pos < 0) {
             result = HttpParseHeaderResult::ERROR;
             break;
         }
         // sub str
-        std::string one_line = recv_data.substr(0, key_end_pos);
-        recv_data = recv_data.substr(key_end_pos + 2);
+        std::string one_line = header_left.substr(0, key_end_pos);
+        header_left = header_left.substr(key_end_pos + 2);
 
         value_start_pos = one_line.find(':');
         // Last line have not  key and value
@@ -304,12 +318,11 @@ lgx::net::HttpParseHeaderResult lgx::net::http::parse_header() {
         str_lower(value);
         map_header_info_[key] = value;
     }
-
     return result;
 }
 
 void lgx::net::http::handle_work() {
-    lgx::work::work w(map_header_info_, map_client_info_, in_content_buffer_, error_times_);
+    lgx::work::work w(map_header_info_, map_client_info_, in_buffer_, error_times_);
     w.set_fd(fd_);
     w.set_send_data_handler(std::bind(&http::send_data, this, std::placeholders::_1, std::placeholders::_2));
     w.set_send_file_handler(std::bind(&http::send_file, this, std::placeholders::_1));
@@ -317,7 +330,6 @@ void lgx::net::http::handle_work() {
 }
 
 void lgx::net::http::handle_write() {
-    //std::cout << "write: \n";
     __uint32_t &event = sp_channel_->get_event();
     if(http_connection_state_ == HttpConnectionState::DISCONNECTED) {
         return;

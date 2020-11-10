@@ -20,9 +20,9 @@
 #define EPOLL_WAIT_TIME       0x1000
 #define MAX_BUF_SIZE          0x1000
 #define HTTP_MAX_NOT_FOUND_TIMES 25
-
-#define LGX_VERSION "1.6"
-#define SERVER_NAME "lgx-server" LGX_VERSION
+#define MAX_HTTP_RECV_BUF_SIZE 0x4000
+#define LGX_VERSION "1.7"
+#define SERVER_NAME "lgx " LGX_VERSION
 
 namespace lgx {
 namespace thread {
@@ -122,6 +122,8 @@ class query;
 class exception;
 }
 }
+
+
 // namespace data start
 namespace data {
 extern std::string root_path;

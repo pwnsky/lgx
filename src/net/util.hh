@@ -17,6 +17,7 @@ namespace util {
 ssize_t read(int fd, void *buffer, size_t length);
 ssize_t read(int fd, std::string &in_buffer);
 ssize_t read(int fd, std::string &in_buffer, int length);
+ssize_t read(int fd, lgx::util::vessel &in_buffer);
 
 ssize_t write(int fd, void *buffer, size_t length);
 ssize_t write(int fd, lgx::util::vessel &out_buffer);

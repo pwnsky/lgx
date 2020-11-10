@@ -6,7 +6,7 @@ std::string lgx::data::web_404_page;
 
 lgx::work::work::work(const std::map<std::string, std::string> &map_header_info,
                       const std::map<std::string, std::string> &map_client_info,
-                      std::string &content, size_t &error_times) :
+                      lgx::util::vessel &content, size_t &error_times) :
     map_header_info_(map_header_info),
     map_client_info_(map_client_info),
     content_(content),

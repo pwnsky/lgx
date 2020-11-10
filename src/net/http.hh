@@ -116,14 +116,14 @@ public:
         client_ip_ = ip;
         client_port_ = port;
     }
-
 private:
     int fd_;
     eventloop *eventloop_;
     sp_channel sp_channel_;
-    std::string in_buffer_;
+    std::string header_data_;
+    lgx::util::vessel in_buffer_;
     lgx::util::vessel out_buffer_;
-    std::string in_content_buffer_;
+    //std::string in_content_buffer_;
     bool recv_error_;
     HttpConnectionState http_connection_state_;
     HttpRecvState http_process_state_;

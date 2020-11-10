@@ -120,6 +120,23 @@ public:
         return -1;
     }
 
+    int find_to_end(const char *ts) {
+        const char *bp;
+        const char *sp;
+        const char *src = data_start_ptr;
+        for(size_t i = 0; i < size_; ++i) {
+            bp = src;
+            sp = ts;
+            do {
+                if(!*sp)
+                    return (int)(bp - data_start_ptr);
+            } while(*bp ++ == *sp ++);
+            src ++;
+        }
+        return -1;
+        return 0;
+    }
+
     int find(const char *ts, int length) {
         const char *bp;
         const char *sp;
@@ -149,6 +166,9 @@ public:
     }
     char *data() {
         return data_start_ptr;
+    }
+    std::string to_string() {
+        return std::string(data_start_ptr, data_start_ptr + size_);
     }
 
     size_t size() {
