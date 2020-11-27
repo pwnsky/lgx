@@ -118,7 +118,7 @@ If you configured the file,you can restart server directly, not to recomplie the
 
 2020-11-10: Replace type of http recv buffer  to lgx::util::vessel, so it's faster than std::string when recv data
 
-
+2020-11-27: Fix directory traversal vulnerability
 
 ## LGX CVE LIST
 

@@ -380,6 +380,11 @@ void lgx::net::http::send_data(const std::string &type,const std::string &conten
 
 // Send file
 void lgx::net::http::send_file(const std::string &file_name) {
+    if(!check_file_path(file_name)) {
+        handle_not_found();
+        return;
+    }
+
     do {
         if(recv_error_ || http_connection_state_ == HttpConnectionState::DISCONNECTED) {
             break;;
@@ -438,7 +443,15 @@ void lgx::net::http::send_file(const std::string &file_name) {
         close(fd);
     } while(false);
 }
-
+bool lgx::net::http::check_file_path(const std::string &file_name) {
+    char last_ch = 0;
+    for (auto ch : file_name) {
+        if(ch == '.')
+            if(last_ch == '.')
+                return false;
+    }
+    return true;
+}
 void lgx::net::http::handle_not_found() {
     std::string file_name = lgx::data::root_path + "/" + lgx::data::web_404_page;
     do {

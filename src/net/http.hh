@@ -149,6 +149,7 @@ private:
     std::string get_suffix(std::string file_name);
     void send_data(const std::string &type,const std::string &content);
     void send_file(const std::string &file_name);
+    bool check_file_path(const std::string &file_name);
     void str_lower(std::string &str);
     void redirect(const std::string &url);
 };
