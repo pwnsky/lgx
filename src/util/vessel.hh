@@ -11,14 +11,20 @@
 class lgx::util::vessel {
 public:
     vessel() :
+
         sub_(false),
         size_(0),
         capacity_(align(VESSEL_DEFAULT_SIZE)),
-        data_ptr(static_cast<char*>(malloc(align(VESSEL_DEFAULT_SIZE))))
-    {
+        data_ptr(static_cast<char*>(malloc(align(VESSEL_DEFAULT_SIZE)))) {
+#ifdef DEBUG
+        dbg_log("lgx::util::vessel::vessel()");
+#endif
         data_start_ptr = data_ptr;
     }
     ~vessel() {
+#ifdef DEBUG
+        d_cout << "lgx::util::vessel::~vessel()";
+#endif
         free(data_ptr);
     };
     void operator<<(std::string data) {
@@ -83,7 +89,6 @@ public:
         memcpy(data_start_ptr + size_, data, size);
         size_ += size;
     }
-
 
     void sub(size_t size) {
         sub_ = true;

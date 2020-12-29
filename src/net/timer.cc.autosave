@@ -12,7 +12,6 @@ lgx::net::timer::timer(timer &t) :
     sp_http_(t.sp_http_) {
 }
 
-
 lgx::net::timer::~timer() {
     if(sp_http_) {
         sp_http_->handle_close();

@@ -99,10 +99,14 @@ print:
 	@echo $(COBJS)
 #@echo $(OBJS)
 
+test:
+	$(GCC) test_src/webbench.c -o webbench
+
 .PHONY:clean
 clean:
 	$(RM) $(BUILD_PATH)/$(TARGET) $(OBJS) $(COBJS)
 	$(RM) $(BUILD_PATH)/lgx.log
+	$(RM) webbench
 
 install:
 	@sudo $(MKDIR) $(INSTALL_PATH)

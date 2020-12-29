@@ -46,6 +46,9 @@ lgx::net::http::http(int fd,eventloop *elp) :
     http_connection_state_(HttpConnectionState::CONNECTED),
     http_process_state_(HttpRecvState::PARSE_HEADER),
     keep_alive_(false) {
+#ifdef DEBUG
+    dbg_log("lgx::net::http::http(int fd,eventloop *elp)\n");
+#endif
     //set callback function handler
     sp_channel_->set_read_handler(std::bind(&http::handle_read, this));
     sp_channel_->set_write_handler(std::bind(&http::handle_write, this));
@@ -53,7 +56,9 @@ lgx::net::http::http(int fd,eventloop *elp) :
 }
 lgx::net::http::~http() {
     close(fd_);
-    //std::cout << "~http()\n";
+#ifdef DEBUG
+    dbg_log("lgx::net::http::~http()");
+#endif
 }
 
 void lgx::net::http::reset() {

@@ -21,6 +21,9 @@ void init() {
 }
 
 int main(int argv, char **argc) {
+#ifdef DEBUG
+    setbuf(stdout, NULL);
+#endif
     if(argv < 2) {
         std::cout << "-h get more info" << std::endl;
         return 0;

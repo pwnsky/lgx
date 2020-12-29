@@ -9,11 +9,12 @@
 #include <queue>
 #include "third/json.hh"
 
-
+//#define DEBUG
 #define DEFAULT_CONFIG_FILE "./etc/config.json"
-
 #define d_cout std::cout << "[" << __FILE__ << " line: " << __LINE__ << " thread id: " << std::hex <<  pthread_self() << std::oct << "] "
-#define log_dbg(x) "LGX DEBUG:" + std::string(__FILE__) + ":" + std::to_string(__LINE__) + "\n" + std::string(x)
+#define dbg_log(x) d_cout << x << std::endl
+
+#define log_dbg(x) "LGX DEBUG:" + std::string(__FILE__) + ":" + std::to_string(__LINE__) + "\n" + std::string(x) + "\n"
 
 #define MAX_CONNECTED_FDS_NUM 0x100000
 #define EPOLL_MAX_EVENT_NUM   0x1000
