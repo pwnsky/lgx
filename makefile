@@ -2,9 +2,10 @@
 # Create time: 2020-08-26
 # Author: i0gan
 
+GCC     := gcc
 CC      := g++ 
 CFLAGS  := -g -O3 -std=c++14
-LDFLAGS := -lpthread -ldl
+LDFLAGS := -lpthread
 RM      := rm -rf 
 CP      := cp -r
 MKDIR   := mkdir -p
@@ -23,7 +24,6 @@ THIRD_PATH  :=  ./src/third
 UTIL_PATH   :=  ./src/util
 SECURITY_PATH := ./src/security
 MAIN_PATH     :=  ./src
-DB_MYSQL_PATH := ./src/db/mysql
 
 #---------------------OBJ-------------------------
 OBJS :=
@@ -62,20 +62,9 @@ SECURITY_SRC := $(wildcard $(SECURITY_PATH)/*.cc)
 SECURITY_OBJ := $(patsubst %.cc, %.o, $(SECURITY_SRC)) 
 OBJS += $(SECURITY_OBJ)
 
-# mysql src
-DB_MYSQL_SRC := $(wildcard $(DB_MYSQL_PATH)/*.cc)  
-DB_MYSQL_OBJ := $(patsubst %.cc, %.o, $(DB_MYSQL_SRC)) 
-
-#OBJS += $(DB_MYSQL_OBJ)
 # complie
 lgx:$(OBJS)
 	$(CC) $^ -o $(BUILD_PATH)/$@ $(LDFLAGS) $(CFLAGS)
-
-#debug:$(OBJS)
-#	$(CC) $^ -o $(BUILD_PATH)/$@ $(LDFLAGS) $(CFLAGS)  -DDEBUG
-
-mysql:$(OBJS)
-	$(CC) $^ $(DB_MYSQL_OBJ) -o $(BUILD_PATH)/$@ $(LDFLAGS) $(CFLAGS) -lmysqlclient -DUSE_DB_MYSQL 
 
 static:$(OBJS)
 	$(CC) $^ -o $(BUILD_PATH)/$@ $(LDFLAGS) $(CFLAGS)  --static

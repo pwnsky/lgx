@@ -198,7 +198,9 @@ void lgx::net::http::handle_read() {
     } while(false);
 
     if(recv_error_) {
-        //std::cout << "error\n";
+#ifdef DEBUG
+        dbg_log("recv error");
+#endif
         this->reset();
     }
     // end
@@ -211,7 +213,6 @@ void lgx::net::http::handle_read() {
 }
 
 lgx::net::HttpParseHeaderResult lgx::net::http::parse_header() {
-
     lgx::net::HttpParseHeaderResult  result = HttpParseHeaderResult::SUCCESS;
     std::string header_left;
     int first_line_read_pos = 0;

@@ -10,7 +10,6 @@
 #include <sys/types.h>
 #include <sys/mman.h>
 
-
 #include "net/net.hh"
 #include "net/eventloop.hh"
 #include "base.hh"
@@ -18,7 +17,7 @@
 #include "log/log.hh"
 
 #include "util/util.hh"
-#include "security/firewall.hh"
+#include "util/firewall.hh"
 
 using logger = lgx::log::logger;
 
@@ -33,9 +32,6 @@ public:
     bool run_security_module();
     bool run_network_module();
     void show_logo();
-#ifdef USE_DB_MYSQL
-    bool connect_db_mysql();
-#endif
 
 private:
     int number_of_thread_;

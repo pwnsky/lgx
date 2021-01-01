@@ -16,7 +16,7 @@
 #include "util.hh"
 #include "http.hh"
 #include "../log/log.hh"
-#include "../security/firewall.hh"
+#include "../util/firewall.hh"
 
 using logger = lgx::log::logger;
 

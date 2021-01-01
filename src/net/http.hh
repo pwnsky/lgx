@@ -16,7 +16,7 @@
 #include "../work/work.hh"
 #include "../util/vessel.hh"
 #include "../log/log.hh"
-#include "../security/firewall.hh"
+#include "../util/firewall.hh"
 
 using logger = lgx::log::logger;
 
@@ -137,6 +137,7 @@ private:
     std::map<std::string, std::string> map_client_info_;
     size_t error_times_ = 0; // for avoid attack
     size_t not_found_times_ = 0;
+    lgx::thread::mutex_lock mutex_lock_;
 
     void handle_read();
     void handle_write();

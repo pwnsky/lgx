@@ -1,6 +1,6 @@
 #include "firewall.hh"
 
-bool lgx::security::firewall::wall(int fd, const std::string &ip) {
+bool lgx::util::firewall::wall(int fd, const std::string &ip) {
     bool ret = false;
     for(auto iter = forbid_ips_.begin(); iter != forbid_ips_.end(); ++iter) {
         if(*iter== ip) {
@@ -12,7 +12,7 @@ bool lgx::security::firewall::wall(int fd, const std::string &ip) {
     return ret;
 }
 
-bool lgx::security::firewall::is_forbid(const std::string &ip) {
+bool lgx::util::firewall::is_forbid(const std::string &ip) {
     bool ret = false;
     for(auto iter = forbid_ips_.begin(); iter != forbid_ips_.end(); ++iter) {
         if(*iter== ip) {

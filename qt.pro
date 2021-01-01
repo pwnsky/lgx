@@ -23,13 +23,8 @@ HEADERS += \
     src/thread/noncopyable.hh \
     src/thread/thread.hh \
     src/work/work.hh \
-    src/crypto/url.hh \
-    src/crypto/md5.hh \
-    src/security/firewall.hh \
-    src/db/mysql/sql.hh \
-    src/db/mysql/query.hh \
-    src/db/sqlite/sql.hh \
-    src/db/sqlite/query.hh
+    src/util/url.hh \
+    src/util/firewall.hh \
 
 SOURCES += \
     src/log/log.cc \
@@ -48,7 +43,4 @@ SOURCES += \
     src/start_up.cc \
     src/thread/thread.cc \
     src/work/work.cc \
-    src/security/firewall.cc \
-    src/db/mysql/sql.cc \
-    src/db/mysql/query.cc \
-    src/crypto/md5.cc
+    src/util/firewall.cc \

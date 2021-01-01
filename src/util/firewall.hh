@@ -3,7 +3,7 @@
 #include <sys/socket.h>
 #include <vector>
 
-class lgx::security::firewall {
+class lgx::util::firewall {
 public:
     firewall() {}
     ~firewall() {}

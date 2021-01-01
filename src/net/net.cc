@@ -1,5 +1,5 @@
 #include "net.hh"
-extern lgx::security::firewall *lgx::data::firewall;
+extern lgx::util::firewall *lgx::data::firewall;
 
 lgx::net::net::net(int port,int number_of_thread) :
     started_(false),

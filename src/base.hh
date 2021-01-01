@@ -9,14 +9,12 @@
 #include <queue>
 #include "util/json.hh"
 
-
 #define d_cout std::cout << "[" << __FILE__ << " line: " << __LINE__ << " thread id: " << std::hex <<  pthread_self() << std::oct << "] "
 #define dbg_log(x) d_cout << x << std::endl
 #define log_dbg(x) "LGX DEBUG:" + std::string(__FILE__) + ":" + std::to_string(__LINE__) + "\n" + std::string(x) + "\n"
 
 //#define DEFAULT_CONFIG_FILE "/etc/lgx/conf.json"
 //#define DEBUG
-//#define USE_DB_MYSQL
 
 #define MAX_CONNECTED_FDS_NUM 0x100000
 #define EPOLL_MAX_EVENT_NUM   0x1000
@@ -26,7 +24,6 @@
 #define MAX_HTTP_RECV_BUF_SIZE 0x4000
 #define LGX_VERSION "1.8"
 #define SERVER_NAME "lgx " LGX_VERSION
-
 
 namespace lgx {
 namespace thread {
@@ -72,14 +69,12 @@ using sp_channel = std::shared_ptr<lgx::net::channel>;
 }
 // namespace net end
 
-
 // namespace work start
 namespace work {
 class work;
 enum class ResponseCode;
 }
 // namespace work end
-
 
 // namespace util start
 namespace util {
@@ -89,6 +84,8 @@ using callback2 = std::function<void(const std::string &, const std::string &)>;
 class vessel;
 using json = nlohmann::json;
 std::string date_time();
+class url;
+class firewall;
 }
 // namespace util end
 
@@ -101,25 +98,6 @@ class log_thread;
 }
 // namespace log end
 
-
-namespace crypto {
-class url;
-class md5;
-}
-
-namespace security {
-class firewall;
-}
-
-namespace db {
-namespace mysql {
-class sql;
-class query;
-class exception;
-}
-
-}
-
 // namespace data start
 namespace data {
 extern std::string root_path;
@@ -128,14 +106,12 @@ extern std::string web_404_page;
 extern std::string log_path;
 extern lgx::log::log *p_log;
 extern std::vector<std::string> forbid_ips;
-extern lgx::security::firewall *firewall;
-namespace mysql {
-    extern lgx::db::mysql::sql *sql;
-    extern lgx::thread::mutex_lock lock;
-}
-
+extern lgx::util::firewall *firewall;
+//namespace mysql {
+//    extern lgx::db::mysql::sql *sql;
+//    extern lgx::thread::mutex_lock lock;
+//}
 }
 // namespace data end
-
 class start_up;
 }

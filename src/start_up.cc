@@ -7,7 +7,7 @@ extern lgx::log::log *lgx::data::p_log;
 extern std::string lgx::data::log_path;
 
 std::vector<std::string> lgx::data::forbid_ips;
-lgx::security::firewall *lgx::data::firewall = nullptr;
+lgx::util::firewall *lgx::data::firewall = nullptr;
 
 lgx::start_up::start_up() :
     sp_log_thread_(new lgx::log::log_thread) {
@@ -94,9 +94,6 @@ bool lgx::start_up::load_config() {
         lgx::data::web_page = obj["web_page"];
         lgx::data::web_404_page = obj["web_404_page"];
         lgx::data::log_path = obj["log_path"];
-#ifdef USE_DB_MYSQL
-
-#endif
     }  catch (util::json::exception &e) {
         d_cout << e.what() << '\n';
         abort();
@@ -120,13 +117,6 @@ bool lgx::start_up::load_config() {
     return true;
 }
 
-#ifdef USE_DB_MYSQL
-bool lgx::start_up::connect_db_mysql() {
-
-    return true;
-}
-#endif
-
 bool lgx::start_up::run_network_module() {
     net_.set_port(port_);
     net_.set_number_of_thread(number_of_thread_);
@@ -141,7 +131,7 @@ bool lgx::start_up::run_logger_module() {
 }
 
 bool lgx::start_up::run_security_module() {
-    lgx::data::firewall = new lgx::security::firewall();
+    lgx::data::firewall = new lgx::util::firewall();
     lgx::data::firewall->set_forbid_ips(lgx::data::forbid_ips);
     return true;
 }

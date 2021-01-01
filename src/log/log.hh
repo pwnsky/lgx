@@ -32,8 +32,6 @@ private:
     int log_fd_ = -1;
     std::queue<std::string> logs_;
     lgx::thread::mutex_lock write_mutex_lock_; //avoid call write at same time
-
-
 };
 
 class lgx::log::log {

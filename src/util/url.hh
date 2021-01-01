@@ -2,7 +2,7 @@
 
 #include "../base.hh"
 
-class lgx::crypto::url {
+class lgx::util::url {
 public:
     static std::string decode(const std::string &url) {
                 std::string ret;

@@ -115,7 +115,7 @@ bool lgx::work::work::parse_url() {
         return false;
     }
     map_url_info_["orignal_url"] = url;
-    url = lgx::crypto::url::decode(url);
+    url = lgx::util::url::decode(url);
     map_url_info_["url"] = url;
 
     int first_value_pos = url.find("?");

@@ -47,7 +47,7 @@ Welcome to use lgx server!
 if you wnnae unstall lgx
 
 ```
-make unstall
+make uninstall
 ```
 
 or
@@ -151,82 +151,7 @@ If you configured the file,you can restart server directly, not to recomplie the
 ## Src Tree
 
 ```
-src
-├── base.hh
-├── crypto
-│   ├── md5.cc
-│   ├── md5.hh
-│   └── url.hh
-├── db
-│   └── mysql
-│       ├── query.cc
-│       ├── query.hh
-│       ├── query.o
-│       ├── sql.cc
-│       ├── sql.hh
-│       └── sql.o
-├── log
-│   ├── log.cc
-│   ├── log.hh
-│   ├── log.o
-│   ├── log_thread.cc
-│   ├── log_thread.hh
-│   └── log_thread.o
-├── main.cc
-├── main.o
-├── net
-│   ├── channel.cc
-│   ├── channel.hh
-│   ├── channel.o
-│   ├── epoll.cc
-│   ├── epoll.hh
-│   ├── epoll.o
-│   ├── eventloop.cc
-│   ├── eventloop.hh
-│   ├── eventloop.o
-│   ├── eventloop_thread.cc
-│   ├── eventloop_thread.hh
-│   ├── eventloop_thread.o
-│   ├── eventloop_threadpool.cc
-│   ├── eventloop_threadpool.hh
-│   ├── eventloop_threadpool.o
-│   ├── http.cc
-│   ├── http.hh
-│   ├── http.o
-│   ├── net.cc
-│   ├── net.hh
-│   ├── net.o
-│   ├── timer.cc
-│   ├── timer.hh
-│   ├── timer.o
-│   ├── util.cc
-│   ├── util.hh
-│   └── util.o
-├── security
-│   ├── firewall.cc
-│   ├── firewall.hh
-│   └── firewall.o
-├── start_up.cc
-├── start_up.hh
-├── start_up.o
-├── thread
-│   ├── condition.hh
-│   ├── count_down_latch.hh
-│   ├── mutex_lock.hh
-│   ├── noncopyable.hh
-│   ├── thread.cc
-│   ├── thread.hh
-│   └── thread.o
-├── util
-│   ├── json.hh
-│   ├── util.cc
-│   ├── util.hh
-│   ├── util.o
-│   └── vessel.hh
-└── work
-    ├── work.cc
-    ├── work.hh
-    └── work.o
+
 ```
 
 
