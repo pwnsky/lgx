@@ -6,12 +6,5 @@
     "web_404_page" : "404.html",
     "log_path" : "/var/log/lgx.log",
     "firewall" : {
-    },
-    "db_mysql": {
-        "host" : "127.0.0.1",
-        "port" : 3306,
-        "user" : "lgx",
-        "name" : "lgx",
-        "password" : "123456"
     }
 }
