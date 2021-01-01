@@ -79,10 +79,10 @@ bool lgx::start_up::load_config() {
 
     fclose(config_file_ptr);
     //std::cout << "json [" << file_json << "]\n";
-    lgx::third::json obj;
+    lgx::util::json obj;
     try{
-        obj = lgx::third::json::parse(file_json);
-    } catch(third::json::parse_error &e) {
+        obj = lgx::util::json::parse(file_json);
+    } catch(util::json::parse_error &e) {
         d_cout << e.what() << '\n';
         return false;
     }
@@ -94,10 +94,15 @@ bool lgx::start_up::load_config() {
         lgx::data::web_page = obj["web_page"];
         lgx::data::web_404_page = obj["web_404_page"];
         lgx::data::log_path = obj["log_path"];
-    }  catch (lgx::third::json::exception &e) {
+#ifdef USE_DB_MYSQL
+
+#endif
+    }  catch (util::json::exception &e) {
         d_cout << e.what() << '\n';
         abort();
     }
+
+
 
     // 防火墙禁用特定ip
     auto ips = obj["firewall"];
@@ -106,7 +111,7 @@ bool lgx::start_up::load_config() {
         try {
             ip_key = iter.value();
             ip = iter.value();
-        }  catch (third::json::type_error e) {
+        }  catch (util::json::type_error e) {
             d_cout << e.what() << '\n';
             return false;
         }
@@ -114,6 +119,14 @@ bool lgx::start_up::load_config() {
     }
     return true;
 }
+
+#ifdef USE_DB_MYSQL
+bool lgx::start_up::connect_db_mysql() {
+
+    return true;
+}
+#endif
+
 bool lgx::start_up::run_network_module() {
     net_.set_port(port_);
     net_.set_number_of_thread(number_of_thread_);

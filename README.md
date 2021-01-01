@@ -8,9 +8,9 @@ The lgx server is a high-performance static web server, written by c++ language.
 
 
 
-## How to use lgx server
+## How to Install lgx server
 
-You should make sure you have install compile environment as follows:
+You should make sure you have install compile environment as follows
 ### Debian, Ubuntu ....
 
 ```
@@ -26,15 +26,16 @@ git clone https://github.com/I0gan/lgx.git
 cd lgx
 ```
 Now you can compile with make
-### Compile
+
 ```
 make -j 8
+make install
 ```
 
 ### Run
 
 ```
-chmod +x start && ./start
+sudo lgx -r
 ```
 
  Input ip address or domain you can access web to see as follows:
@@ -42,6 +43,21 @@ chmod +x start && ./start
 ```
 Welcome to use lgx server!
 ```
+
+if you wnnae unstall lgx
+
+```
+make unstall
+```
+
+or
+
+```
+sudo rm /etc/lgx
+sudo rm /usr/bin/lgx
+```
+
+Then you can uninstall lgx server
 
 
 
@@ -54,13 +70,19 @@ If you wanna change default page, you need to change the configure file, default
 ```
 {
     "port" : 80,
-    "number_of_thread": 8,
-    "log_path" : "data/log",
-    "root_path" : "www",
+    "number_of_thread": 4,
+    "root_path" : "/var/www",
     "web_page" : "index.html",
     "web_404_page" : "404.html",
-    "log_path" : "./lgx.log",
+    "log_path" : "/var/log/lgx.log",
     "firewall" : {
+    },
+    "db_mysql": {
+        "host" : "127.0.0.1",
+        "port" : 3306,
+        "user" : "lgx",
+        "name" : "lgx",
+        "password" : "123456"
     }
 }
 ```
@@ -132,67 +154,79 @@ If you configured the file,you can restart server directly, not to recomplie the
 src
 ├── base.hh
 ├── crypto
+│   ├── md5.cc
+│   ├── md5.hh
 │   └── url.hh
 ├── db
-│   ├── mysql
-│   │   ├── query.cc
-│   │   ├── query.hh
-│   │   ├── sql.cc
-│   │   └── sql.hh
-│   └── sqlite
+│   └── mysql
 │       ├── query.cc
 │       ├── query.hh
+│       ├── query.o
 │       ├── sql.cc
-│       └── sql.hh
+│       ├── sql.hh
+│       └── sql.o
 ├── log
 │   ├── log.cc
 │   ├── log.hh
+│   ├── log.o
 │   ├── log_thread.cc
-│   └── log_thread.hh
+│   ├── log_thread.hh
+│   └── log_thread.o
 ├── main.cc
+├── main.o
 ├── net
 │   ├── channel.cc
 │   ├── channel.hh
+│   ├── channel.o
 │   ├── epoll.cc
 │   ├── epoll.hh
+│   ├── epoll.o
 │   ├── eventloop.cc
 │   ├── eventloop.hh
+│   ├── eventloop.o
 │   ├── eventloop_thread.cc
 │   ├── eventloop_thread.hh
+│   ├── eventloop_thread.o
 │   ├── eventloop_threadpool.cc
 │   ├── eventloop_threadpool.hh
+│   ├── eventloop_threadpool.o
 │   ├── http.cc
 │   ├── http.hh
+│   ├── http.o
 │   ├── net.cc
 │   ├── net.hh
+│   ├── net.o
 │   ├── timer.cc
 │   ├── timer.hh
+│   ├── timer.o
 │   ├── util.cc
-│   └── util.hh
+│   ├── util.hh
+│   └── util.o
 ├── security
 │   ├── firewall.cc
-│   └── firewall.hh
+│   ├── firewall.hh
+│   └── firewall.o
 ├── start_up.cc
 ├── start_up.hh
-├── third
-│   ├── json.hh
-│   ├── sqlite3.c
-│   └── sqlite3.h
+├── start_up.o
 ├── thread
 │   ├── condition.hh
 │   ├── count_down_latch.hh
 │   ├── mutex_lock.hh
 │   ├── noncopyable.hh
 │   ├── thread.cc
-│   └── thread.hh
+│   ├── thread.hh
+│   └── thread.o
 ├── util
+│   ├── json.hh
 │   ├── util.cc
 │   ├── util.hh
+│   ├── util.o
 │   └── vessel.hh
 └── work
     ├── work.cc
-    └── work.hh
-
+    ├── work.hh
+    └── work.o
 ```
 
 

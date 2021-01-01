@@ -2,8 +2,7 @@
 
 HEADERS += \
     src/base.hh \
-    src/third/json.hh \
-    src/third/sqlite3.h \
+    src/util/json.hh \
     src/util/vessel.hh \
     src/util/util.hh \
     src/log/log.hh \
@@ -25,6 +24,7 @@ HEADERS += \
     src/thread/thread.hh \
     src/work/work.hh \
     src/crypto/url.hh \
+    src/crypto/md5.hh \
     src/security/firewall.hh \
     src/db/mysql/sql.hh \
     src/db/mysql/query.hh \
@@ -32,7 +32,6 @@ HEADERS += \
     src/db/sqlite/query.hh
 
 SOURCES += \
-    src/third/sqlite3.c \
     src/log/log.cc \
     src/log/log_thread.cc \
     src/util/util.cc \
@@ -52,5 +51,4 @@ SOURCES += \
     src/security/firewall.cc \
     src/db/mysql/sql.cc \
     src/db/mysql/query.cc \
-    src/db/sqlite/sql.cc \
-    src/db/sqlite/query.cc
+    src/crypto/md5.cc

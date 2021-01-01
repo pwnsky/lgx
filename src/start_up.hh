@@ -33,6 +33,9 @@ public:
     bool run_security_module();
     bool run_network_module();
     void show_logo();
+#ifdef USE_DB_MYSQL
+    bool connect_db_mysql();
+#endif
 
 private:
     int number_of_thread_;

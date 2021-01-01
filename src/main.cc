@@ -28,7 +28,10 @@ int main(int argv, char **argc) {
         std::cout << "-h get more info" << std::endl;
         return 0;
     }
-
+    if(getuid() != 0) {
+        std::cout << "must be root" << std::endl;
+        return 1;
+    }
     ::signal(SIGINT, lgx_exit);
     std::string arg = argc[1];
     if(arg == "-h" || arg == "--help") {

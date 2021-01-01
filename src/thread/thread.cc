@@ -12,9 +12,15 @@ lgx::thread::thread::thread(const lgx::util::callback &call_back, const std::str
     func_(call_back),
     name_(name),
     count_down_latch_(1) { // 等待机制, 单独一次开启一个开启线程, 就设置为1
+#ifdef DEBUG
+        dbg_log("lgx::thread::thread::thread()");
+#endif
 }
 
 lgx::thread::thread::~thread() {
+#ifdef DEBUG
+        dbg_log("lgx::thread::thread::~thread()");
+#endif
     //std::cout << "~thread\n";
     if(started_ && !joined_)
         pthread_detach(pthread_id);

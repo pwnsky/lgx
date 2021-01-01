@@ -2,19 +2,17 @@
 # Create time: 2020-08-26
 # Author: i0gan
 
-GCC     := gcc
 CC      := g++ 
-TARGET  := lgx
-CFLAGS  := -g -O3 -std=c++14  --static
+CFLAGS  := -g -O3 -std=c++14
 LDFLAGS := -lpthread -ldl
-RM := rm -f 
-CP := cp -r
-MKDIR := mkdir
-
-BUILD_PATH := ./bin
-
-# install path
-INSTALL_PATH := /usr/share/lgx
+RM      := rm -rf 
+CP      := cp -r
+MKDIR   := mkdir -p
+BUILD_PATH   := ./out
+INSTALL_PATH := /usr/bin
+CONFIG_PATH  := /etc/lgx
+WWW_PATH     := /var/www
+CONFIG_FILE_PATH := $(CONFIG_PATH)/conf.json
 
 # src path
 NET_PATH    :=  ./src/net
@@ -24,16 +22,8 @@ LOG_PATH    :=  ./src/log
 THIRD_PATH  :=  ./src/third
 UTIL_PATH   :=  ./src/util
 SECURITY_PATH := ./src/security
-MAIN_PATH   :=  ./src
+MAIN_PATH     :=  ./src
 DB_MYSQL_PATH := ./src/db/mysql
-DB_SQLITE_PATH := ./src/db/sqlite
-#LDFLAGS += lmysqlclient
-#---------------------COBJ-------------------------
-# sqlite
-COBJS :=
-C_THIRD_SRC := $(wildcard $(THIRD_PATH)/*.c)  
-C_THIRD_OBJ += $(patsubst %.c, %.o, $(C_THIRD_SRC))
-COBJS += $(C_THIRD_OBJ)
 
 #---------------------OBJ-------------------------
 OBJS :=
@@ -67,51 +57,53 @@ LOG_SRC := $(wildcard $(LOG_PATH)/*.cc)
 LOG_OBJ := $(patsubst %.cc, %.o, $(LOG_SRC)) 
 OBJS += $(LOG_OBJ)
 
-
 # security src
 SECURITY_SRC := $(wildcard $(SECURITY_PATH)/*.cc)  
 SECURITY_OBJ := $(patsubst %.cc, %.o, $(SECURITY_SRC)) 
 OBJS += $(SECURITY_OBJ)
 
 # mysql src
-#DB_MYSQL_SRC := $(wildcard $(DB_MYSQL_PATH)/*.cc)  
-#DB_MYSQL_OBJ := $(patsubst %.cc, %.o, $(DB_MYSQL_SRC)) 
+DB_MYSQL_SRC := $(wildcard $(DB_MYSQL_PATH)/*.cc)  
+DB_MYSQL_OBJ := $(patsubst %.cc, %.o, $(DB_MYSQL_SRC)) 
+
 #OBJS += $(DB_MYSQL_OBJ)
-
-# sqlite src
-DB_SQLITE_SRC := $(wildcard $(DB_SQLITE_PATH)/*.cc)  
-DB_SQLITE_OBJ := $(patsubst %.cc, %.o, $(DB_SQLITE_SRC)) 
-OBJS += $(DB_SQLITE_OBJ)
-
 # complie
-$(TARGET):$(COBJS) $(OBJS)
-	@echo -e "\033[33m\t linking all \033[0m"
-	$(CC) $^ -o $(BUILD_PATH)/$@ $(LDFLAGS) $(CFLAGS) 
-	@echo -e "\033[34m\t finished \033[0m"
+lgx:$(OBJS)
+	$(CC) $^ -o $(BUILD_PATH)/$@ $(LDFLAGS) $(CFLAGS)
+
+#debug:$(OBJS)
+#	$(CC) $^ -o $(BUILD_PATH)/$@ $(LDFLAGS) $(CFLAGS)  -DDEBUG
+
+mysql:$(OBJS)
+	$(CC) $^ $(DB_MYSQL_OBJ) -o $(BUILD_PATH)/$@ $(LDFLAGS) $(CFLAGS) -lmysqlclient -DUSE_DB_MYSQL 
+
+static:$(OBJS)
+	$(CC) $^ -o $(BUILD_PATH)/$@ $(LDFLAGS) $(CFLAGS)  --static
 
 $(OBJS):%.o:%.cc
-	$(CC) -c $^ -o $@
-
-$(COBJS):%.o:%.c
-	$(GCC) -c $^ -o $@
+	$(CC) -c $^ -o $@ -DDEFAULT_CONFIG_FILE=\"$(CONFIG_FILE_PATH)\"
 
 print:
 	@echo $(COBJS)
-#@echo $(OBJS)
 
 test:
 	$(GCC) test_src/webbench.c -o webbench
 
 .PHONY:clean
 clean:
-	$(RM) $(BUILD_PATH)/$(TARGET) $(OBJS) $(COBJS)
-	$(RM) $(BUILD_PATH)/lgx.log
+	$(RM) $(BUILD_PATH)/lgx $(OBJS)
 	$(RM) webbench
 
 install:
-	@sudo $(MKDIR) $(INSTALL_PATH)
-	@sudo $(MKDIR) /etc/$(TARGET)
-	@sudo $(CP) $(BUILD_PATH)/$(TARGET) $(INSTALL_PATH)
-	@sudo $(CP) $(BUILD_PATH)/etc/config.json /etc/$(TARGET)
-	@ln -s $(INSTALL_PATH)/$(TARGET) /usr/bin/$(TARGET)
-	@echo 'install complete'
+	@sudo $(MKDIR) $(CONFIG_PATH)
+	@sudo $(MKDIR) $(WWW_PATH)
+	@sudo $(CP) $(BUILD_PATH)/lgx $(INSTALL_PATH)
+	@sudo $(CP) $(BUILD_PATH)/conf.json $(CONFIG_PATH)
+	@sudo $(CP) $(BUILD_PATH)/www/* $(WWW_PATH)
+	@echo 'lgx has installed'
+
+uninstall:
+	@sudo $(RM) $(INSTALL_PATH)/lgx
+	@sudo $(RM) $(CONFIG_PATH)
+	@sudo $(RM) $(WWW_PATH)
+	@echo 'lgx has uninstalled'

@@ -12,7 +12,6 @@
 #include <pthread.h>
 
 #include "../base.hh"
-#include "../third/json.hh"
 #include "../log/log.hh"
 #include "../crypto/url.hh"
 
@@ -36,7 +35,7 @@ enum class lgx::work::ResponseCode {
 };
 
 class lgx::work::work {
-    using json = lgx::third::json;
+    using json = lgx::util::json;
 public:
     explicit work(const std::map<std::string, std::string> &map_header_info,
                   const std::map<std::string, std::string> &map_client_info_,
@@ -66,7 +65,7 @@ private:
 
     int fd_;
     void send_data(const std::string &suffix, const std::string &content);
-    void send_json(lgx::third::json &json_obj);
+    void send_json(lgx::util::json &json_obj);
     void send_file(std::string file_name);
     bool parse_url();
     void handle_not_found();

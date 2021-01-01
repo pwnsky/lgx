@@ -1,5 +1,4 @@
 #pragma once
-
 #include <mysql/mysql.h>
 #include <iostream>
 #include "../../base.hh"
