@@ -86,6 +86,7 @@ void lgx::work::work::handle_get() {
                 path = lgx::data::root_path + path;
         }
     } while(false);
+
     // Send get file
     if(get_file)
         send_file(path);

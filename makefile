@@ -76,12 +76,13 @@ print:
 	@echo $(COBJS)
 
 test:
-	$(GCC) test_src/webbench.c -o webbench
+	$(GCC) test_src/webbench.c -o $(BUILD_PATH)/webbench
 
 .PHONY:clean
 clean:
-	$(RM) $(BUILD_PATH)/lgx $(OBJS)
-	$(RM) webbench
+	$(RM) $(BUILD_PATH)/lgx
+	$(RM) $(OBJS)
+	$(RM) $(BUILD_PATH)/webbench
 
 install:
 	@sudo $(MKDIR) $(CONFIG_PATH)

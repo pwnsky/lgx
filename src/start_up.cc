@@ -5,6 +5,7 @@ extern std::string lgx::data::web_page;
 extern std::string lgx::data::web_404_page;
 extern lgx::log::log *lgx::data::p_log;
 extern std::string lgx::data::log_path;
+std::string lgx::data::config_path;
 
 std::vector<std::string> lgx::data::forbid_ips;
 lgx::util::firewall *lgx::data::firewall = nullptr;
@@ -70,7 +71,11 @@ bool lgx::start_up::run() {
 // Load config file
 bool lgx::start_up::load_config() {
     std::string file_json;
-    FILE* config_file_ptr = fopen(DEFAULT_CONFIG_FILE, "r");
+    FILE* config_file_ptr = fopen(lgx::data::config_path.c_str(), "r");
+    if(config_file_ptr == nullptr) {
+        std::cout << "open config file: " << lgx::data::config_path << " failed!\n";
+        exit(-1);
+    }
     while(!feof(config_file_ptr)) {
         char buffer[MAX_BUF_SIZE];
         int len = fread(buffer, 1, MAX_BUF_SIZE, config_file_ptr);
@@ -98,8 +103,6 @@ bool lgx::start_up::load_config() {
         d_cout << e.what() << '\n';
         abort();
     }
-
-
 
     // 防火墙禁用特定ip
     auto ips = obj["firewall"];

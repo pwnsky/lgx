@@ -1,0 +1,2 @@
+#! /bin/sh
+./webbench -t 60 -c 5000 -k http://127.0.0.1/

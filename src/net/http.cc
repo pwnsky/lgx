@@ -391,6 +391,9 @@ void lgx::net::http::send_file(const std::string &file_name) {
         return;
     }
 
+    //handle_error((int)HttpResponseCode::SEE_OTHER, "Internal server error");
+    //return ;
+
     do {
         if(recv_error_ || http_connection_state_ == HttpConnectionState::DISCONNECTED) {
             break;;
@@ -499,7 +502,7 @@ void lgx::net::http::handle_not_found() {
         out_buffer_ << "Content-Length: " +  std::to_string(stat_buf.st_size) + "\r\n";
         out_buffer_ << "\r\n";
         // write header
-        void* file_mmap_ptr = mmap(nullptr, stat_buf.st_size, PROT_READ, MAP_PRIVATE, fd, 0);
+        void *file_mmap_ptr = mmap(nullptr, stat_buf.st_size, PROT_READ, MAP_PRIVATE, fd, 0);
 
         if(!file_mmap_ptr) {
             close(fd);
@@ -507,7 +510,6 @@ void lgx::net::http::handle_not_found() {
             logger() << log_dbg("Internal server error");
             break;
         }
-
         out_buffer_.append(file_mmap_ptr, stat_buf.st_size);
         handle_write();
         munmap(file_mmap_ptr, stat_buf.st_size);

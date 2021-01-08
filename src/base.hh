@@ -107,6 +107,7 @@ extern std::string log_path;
 extern lgx::log::log *p_log;
 extern std::vector<std::string> forbid_ips;
 extern lgx::util::firewall *firewall;
+extern std::string config_path;
 //namespace mysql {
 //    extern lgx::db::mysql::sql *sql;
 //    extern lgx::thread::mutex_lock lock;
