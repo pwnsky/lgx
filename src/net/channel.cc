@@ -59,17 +59,23 @@ void lgx::net::channel::handle_event() {
         event_ = 0;
         return;
     }
+    // 处理错误
     if(revent_ & EPOLLERR) {
         if(error_handler_) handle_error();
         event_ = 0;
         return ;
     }
+
+    // 有数据来临
     if(revent_ & (EPOLLIN | EPOLLPRI | EPOLLRDHUP)) {
         handle_read();
     }
+
+    // 有数据将要写入
     if(revent_ & EPOLLOUT) {
         handle_write();
     }
+
     //*******
     handle_connect();
 }

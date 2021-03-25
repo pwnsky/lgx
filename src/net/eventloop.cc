@@ -39,6 +39,11 @@ void lgx::net::eventloop::add_to_epoll(sp_channel spc, int ms_timeout) {
 
 
 int lgx::net::eventloop::create_event_fd() {
+    /*
+    Enable the close-on-exec flag for the new file descriptor.
+    Specifying this flag permits a program to avoid additional
+    fcntl(2) F_SETFD operations to set the FD_CLOEXEC flag.
+    */
     int event_fd = eventfd(0, EFD_NONBLOCK | EFD_CLOEXEC);
     if(event_fd < 0) {
         perror("eventfd:");

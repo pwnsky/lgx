@@ -81,7 +81,7 @@ std::vector<lgx::net::sp_channel> lgx::net::epoll::get_event_channels_after_get_
         int fd = v_events_[idx].data.fd;
         sp_channel sp_single_event_channel = sp_channels_[fd]; // 从储存容器中取出等待的事件
         if(sp_single_event_channel != nullptr) {
-            sp_single_event_channel->set_revent(v_events_[idx].events);
+            sp_single_event_channel->set_revent(v_events_[idx].events); //重新设置event
             sp_single_event_channel->set_event(0);
             v_sp_event_channels.push_back(sp_single_event_channel);// 添加未处理事件
         }else {

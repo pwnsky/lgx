@@ -20,6 +20,7 @@ enum State{
     runing,
     stopped
 };
+
 // __thread 代表每个线程会分配一个独立的空间
 extern __thread pid_t  tid;
 extern __thread State  state;
