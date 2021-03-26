@@ -101,7 +101,24 @@ bool lgx::work::work::is_dir(const std::string &path) {
 }
 
 void lgx::work::work::handle_post() {
-
+    //std::cout << "run in handle_post\n";
+    std::string out;
+    if(content_.to_string() == "login") {
+        out = "ok";
+        send_data(".txt", out);
+        return;
+    }
+    std::string session = map_client_info_.at("session");
+    for (auto s : lgx::data::sessions) {
+        //out += s.first + "  ";
+        if(!s.second.expired()) {
+            lgx::net::sp_http sp = s.second.lock();
+            sp->push_data(session + " say: " + content_.to_string() + "\n");
+        }
+        //out += s.second.expired();
+    }
+    //out += "\n";
+    //send_data(".txt", out);
 }
 
 bool lgx::work::work::parse_url() {

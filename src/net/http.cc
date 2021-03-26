@@ -4,8 +4,9 @@ std::unordered_map<std::string, std::string> lgx::net::http_content_type::umap_t
 pthread_once_t lgx::net::http_content_type::once_control_;
 
 const __uint32_t EPOLL_DEFAULT_EVENT = EPOLLIN | EPOLLET | EPOLLONESHOT;
-const int DEFAULT_EXPIRED_TIME = 2000;              //ms
+const int DEFAULT_EXPIRED_TIME = 1000 * 5;          //ms
 const int DEFAULT_KEEP_ALIVE_TIME = 3 * 60 * 1000;  //ms
+std::map<std::string, std::weak_ptr<lgx::net::http>> lgx::data::sessions;
 
 void lgx::net::http_content_type::init() {
     //init http content type
@@ -47,15 +48,25 @@ lgx::net::http::http(int fd,eventloop *elp) :
     http_process_state_(HttpRecvState::PARSE_HEADER),
     keep_alive_(false) {
 #ifdef DEBUG
-    dbg_log("lgx::net::http::http(int fd,eventloop *elp)\n");
+    dbg_log("lgx::net::http::http(int fd,eventloop *elp)");
 #endif
     //set callback function handler
     sp_channel_->set_read_handler(std::bind(&http::handle_read, this));
     sp_channel_->set_write_handler(std::bind(&http::handle_write, this));
-    sp_channel_->set_connected_handler(std::bind(&http::handle_connect, this));
+    sp_channel_->set_reset_handler(std::bind(&http::handle_reset, this));
+    session_ = lgx::util::md5(std::to_string(time(nullptr)) + "lgx").to_string();
 }
+
 lgx::net::http::~http() {
     close(fd_);
+    // 删除待发送数据
+    while(this->out_buffer_queue_.size() > 0) {
+        auto buf = out_buffer_queue_.front();
+        out_buffer_queue_.pop();
+        delete  buf;
+    }
+    //删除自己的session
+    lgx::data::sessions.erase(lgx::data::sessions.find(session_));
 #ifdef DEBUG
     dbg_log("lgx::net::http::~http()");
 #endif
@@ -96,13 +107,16 @@ lgx::net::eventloop *lgx::net::http::get_eventloop() {
     return eventloop_;
 }
 
+// 解除定时器
 void lgx::net::http::unbind_timer() {
     if(wp_timer_.lock()) {
         sp_timer sp_net_timer(wp_timer_.lock());
-        sp_net_timer->clear();
+        sp_net_timer->clear(); // 解除http对象
         wp_timer_.reset();
     }
 }
+
+// 接收数据回调
 void lgx::net::http::handle_read() {
     __uint32_t &event = sp_channel_->get_event();
     if(error_times_ > 0 || not_found_times_ > HTTP_MAX_NOT_FOUND_TIMES) {  // check is attacked
@@ -119,13 +133,16 @@ void lgx::net::http::handle_read() {
        return;
     }
 
-    if(out_buffer_.size() > MAX_HTTP_RECV_BUF_SIZE) {
-        handle_error((int)HttpResponseCode::NOT_ACCEPTABLE, "Bad recv size");
+    // 若消息处于发送状态，则继续发送剩余的数据。
+    /*
+    if(out_buffer_->size() > 0) {
+        handle_write();
+        //handle_error((int)HttpResponseCode::NOT_ACCEPTABLE, "Bad recv size");
         return;
-    }
+    }*/
 
     do {
-        int read_len = lgx::net::util::read(fd_, in_buffer_);
+        int read_len = lgx::net::util::read(fd_, in_buffer_); // read data
         logger() << "read data from " + client_ip_ + ":" + client_port_;
         //if state as disconnecting will clean th in buffer
         if(http_connection_state_ == HttpConnectionState::DISCONNECTING) {
@@ -133,7 +150,7 @@ void lgx::net::http::handle_read() {
             in_buffer_.clear();
             break;
         }
-        if(read_len == 0) {
+        if(read_len == 0) { // Disconnected
             http_connection_state_ = HttpConnectionState::DISCONNECTING;
             in_buffer_.clear();
             break;
@@ -337,21 +354,38 @@ void lgx::net::http::handle_work() {
 
 void lgx::net::http::handle_write() {
     __uint32_t &event = sp_channel_->get_event();
+    if(out_buffer_queue_.size() == 0)
+        return;
+
+    out_buffer_ = out_buffer_queue_.front();
+    /*
+    if(event & EPOLLOUT) {
+        std::cout << "lgx::net::http::handle_write EPOLLOUT\n";
+    } */
     if(http_connection_state_ == HttpConnectionState::DISCONNECTED) {
         return;
     }
-    //std::cout << "write size: " << out_buffer_.size() << "] end\n";
-    if(out_buffer_.size() > 0) {
+#ifdef DEBUG
+    dbg_log("write size: " + std::to_string(out_buffer_->size()) + "] end");
+#endif
+    if(out_buffer_->size() > 0) {
         if(util::write(fd_, out_buffer_) < 0) {
             perror("write header data");
             sp_channel_->set_event(0);
-            out_buffer_.clear();
+            out_buffer_->clear();
+        }
+        if(out_buffer_->size() == 0) { // 数据发送完毕后，若out_buffer_queue_还存在待发送数据，则继续发送
+            if(out_buffer_queue_.size() > 0)
+                out_buffer_queue_.pop();
+            delete out_buffer_;
+            out_buffer_ = nullptr;
+            if(out_buffer_queue_.size() > 0)
+                event |= EPOLLOUT; // next round set event as EPOLLOUT
+            return;
         }
     }
-
-    if (out_buffer_.size() > 0)
-        event |= EPOLLOUT;
-
+    if (out_buffer_->size() > 0)
+        event |= EPOLLOUT; // next round set event as EPOLLOUT
 }
 
 std::string lgx::net::http::get_suffix(std::string file_name) {
@@ -367,20 +401,22 @@ std::string lgx::net::http::get_suffix(std::string file_name) {
 }
 
 void lgx::net::http::send_data(const std::string &type,const std::string &content) {
-    out_buffer_.clear();
-    out_buffer_ << "HTTP/1.1 200 OK\r\n";
+    lgx::util::vessel *out_buffer = new lgx::util::vessel();
+    *out_buffer << "HTTP/1.1 200 OK\r\n";
     if (map_header_info_.find("connection") != map_header_info_.end() &&
             (map_header_info_["connection"] == "keep-alive")) {
         keep_alive_ = true;
-        out_buffer_ << std::string("Connection: Keep-Alive\r\n") + "Keep-Alive: timeout=" +
+        *out_buffer << std::string("Connection: Keep-Alive\r\n") + "Keep-Alive: timeout=" +
                        std::to_string(DEFAULT_KEEP_ALIVE_TIME) + "\r\n";
     }
-    out_buffer_ << "Server: " + std::string(SERVER_NAME) + "\r\n";
-    out_buffer_ << "Access-Control-Allow-Origin: *\r\n";
-    out_buffer_ << "Content-Type: " + http_content_type::get_type(type) + "\r\n";
-    out_buffer_ << "Content-Length: " +  std::to_string(content.size()) + "\r\n";
-    out_buffer_ << "\r\n";
-    out_buffer_ << content;
+    *out_buffer << "Cookie: session=" + session_ + "\r\n";
+    *out_buffer << "Server: " + std::string(SERVER_NAME) + "\r\n";
+    *out_buffer << "Access-Control-Allow-Origin: *\r\n";
+    *out_buffer << "Content-Type: " + http_content_type::get_type(type) + "\r\n";
+    *out_buffer << "Content-Length: " +  std::to_string(content.size()) + "\r\n";
+    *out_buffer << "\r\n";
+    *out_buffer << content;
+    out_buffer_queue_.push(out_buffer);
     handle_write();
 }
 
@@ -390,7 +426,6 @@ void lgx::net::http::send_file(const std::string &file_name) {
         handle_not_found();
         return;
     }
-
     //handle_error((int)HttpResponseCode::SEE_OTHER, "Internal server error");
     //return ;
 
@@ -400,6 +435,7 @@ void lgx::net::http::send_file(const std::string &file_name) {
         }
         int fd = open(file_name.c_str(), O_RDONLY);
         if(fd == -1) {
+            std::cout << log_dbg("Open not found file [" + file_name + "] failed!\n");
             logger() << log_dbg("Open file [" + file_name + "] failed!");
             handle_not_found();
             not_found_times_ ++;
@@ -421,20 +457,6 @@ void lgx::net::http::send_file(const std::string &file_name) {
             break;
         }
 
-        // get suffix name
-        out_buffer_.clear();
-        out_buffer_ << "HTTP/1.1 200 OK\r\n";
-        if (map_header_info_.find("connection") != map_header_info_.end() &&
-                (map_header_info_["connection"] == "keep-alive")) {
-            keep_alive_ = true;
-            out_buffer_ << std::string("Connection: Keep-Alive\r\n") + "Keep-Alive: timeout=" +
-                           std::to_string(DEFAULT_KEEP_ALIVE_TIME) + "\r\n";
-        }
-        out_buffer_ << "Server: "  + std::string(SERVER_NAME) + "\r\n";
-        out_buffer_ << "Access-Control-Allow-Origin: *\r\n";
-        out_buffer_ << "Content-Type: " + http_content_type::get_type(get_suffix(file_name)) + "\r\n";
-        out_buffer_ << "Content-Length: " +  std::to_string(stat_buf.st_size) + "\r\n";
-        out_buffer_ << "\r\n";
         // write header
         void* file_mmap_ptr = mmap(nullptr, stat_buf.st_size, PROT_READ, MAP_PRIVATE, fd, 0);
 
@@ -445,7 +467,23 @@ void lgx::net::http::send_file(const std::string &file_name) {
         }
         // Sended it is less than 100 MB
         if(stat_buf.st_size < (1024 * 1024 * 100)) {
-            out_buffer_.append(file_mmap_ptr, stat_buf.st_size);
+            lgx::util::vessel *out_buffer = new lgx::util::vessel();
+            // get suffix name
+            *out_buffer << "HTTP/1.1 200 OK\r\n";
+            if (map_header_info_.find("connection") != map_header_info_.end() &&
+                    (map_header_info_["connection"] == "keep-alive")) {
+                keep_alive_ = true;
+                *out_buffer << std::string("Connection: Keep-Alive\r\n") + "Keep-Alive: timeout=" +
+                               std::to_string(DEFAULT_KEEP_ALIVE_TIME) + "\r\n";
+            }
+            *out_buffer << "Cookie: session=" + session_ + "\r\n";
+            *out_buffer << "Server: "  + std::string(SERVER_NAME) + "\r\n";
+            *out_buffer << "Access-Control-Allow-Origin: *\r\n";
+            *out_buffer << "Content-Type: " + http_content_type::get_type(get_suffix(file_name)) + "\r\n";
+            *out_buffer << "Content-Length: " +  std::to_string(stat_buf.st_size) + "\r\n";
+            *out_buffer << "\r\n";
+            out_buffer->append(file_mmap_ptr, stat_buf.st_size);
+            out_buffer_queue_.push(out_buffer);
             handle_write();
         }
         munmap(file_mmap_ptr, stat_buf.st_size);
@@ -461,6 +499,7 @@ bool lgx::net::http::check_file_path(const std::string &file_name) {
     }
     return true;
 }
+
 void lgx::net::http::handle_not_found() {
     std::string file_name = lgx::data::root_path + "/" + lgx::data::web_404_page;
     do {
@@ -469,9 +508,7 @@ void lgx::net::http::handle_not_found() {
         }
         int fd = open(file_name.c_str(), O_RDONLY);
         if(fd == -1) {
-            std::cout << log_dbg("Open not found file [" + file_name + "] failed!\n");
-
-            handle_error((int)HttpResponseCode::NOT_FOUND, "404 LGX Not Found!");
+            handle_error((int)HttpResponseCode::NOT_FOUND, "LGX Not Found!");
             break;
         }
         struct stat stat_buf;
@@ -487,20 +524,7 @@ void lgx::net::http::handle_not_found() {
             close(fd);
             break;
         }
-        // get suffix name
-        out_buffer_.clear();
-        out_buffer_ << "HTTP/1.1 404 NOT FOUND\r\n";
-        if (map_header_info_.find("connection") != map_header_info_.end() &&
-                (map_header_info_["connection"] == "keep-alive")) {
-            keep_alive_ = true;
-            out_buffer_ << std::string("Connection: Keep-Alive\r\n") + "Keep-Alive: timeout=" +
-                           std::to_string(DEFAULT_KEEP_ALIVE_TIME) + "\r\n";
-        }
-        out_buffer_ << "Server: "  + std::string(SERVER_NAME) + "\r\n";
-        out_buffer_ << "Access-Control-Allow-Origin: *\r\n";
-        out_buffer_ << "Content-Type: " + http_content_type::get_type(get_suffix(file_name)) + "\r\n";
-        out_buffer_ << "Content-Length: " +  std::to_string(stat_buf.st_size) + "\r\n";
-        out_buffer_ << "\r\n";
+
         // write header
         void *file_mmap_ptr = mmap(nullptr, stat_buf.st_size, PROT_READ, MAP_PRIVATE, fd, 0);
 
@@ -510,20 +534,38 @@ void lgx::net::http::handle_not_found() {
             logger() << log_dbg("Internal server error");
             break;
         }
-        out_buffer_.append(file_mmap_ptr, stat_buf.st_size);
+
+        lgx::util::vessel *out_buffer = new lgx::util::vessel();
+        // get suffix name
+        *out_buffer << "HTTP/1.1 404 NOT FOUND\r\n";
+        if (map_header_info_.find("connection") != map_header_info_.end() &&
+                (map_header_info_["connection"] == "keep-alive")) {
+            keep_alive_ = true;
+            *out_buffer << std::string("Connection: Keep-Alive\r\n") + "Keep-Alive: timeout=" +
+                           std::to_string(DEFAULT_KEEP_ALIVE_TIME) + "\r\n";
+        }
+        *out_buffer << "Cookie: session=" + session_ + "\r\n";
+        *out_buffer << "Server: "  + std::string(SERVER_NAME) + "\r\n";
+        *out_buffer << "Access-Control-Allow-Origin: *\r\n";
+        *out_buffer << "Content-Type: " + http_content_type::get_type(get_suffix(file_name)) + "\r\n";
+        *out_buffer << "Content-Length: " +  std::to_string(stat_buf.st_size) + "\r\n";
+        *out_buffer << "\r\n";
+        out_buffer->append(file_mmap_ptr, stat_buf.st_size);
+        out_buffer_queue_.push(out_buffer);
+        out_buffer_queue_.push(out_buffer);
         handle_write();
         munmap(file_mmap_ptr, stat_buf.st_size);
         close(fd);
     } while(false);
 }
 
-// 处理连接
-void lgx::net::http::handle_connect() {
+// 触发事件后，重新更新事件
+void lgx::net::http::handle_reset() {
     int ms_timeout = 0;
     __uint32_t &event = sp_channel_->get_event();
-    unbind_timer(); //解除计时器, 避免有两个计时器监视
-
+    unbind_timer(); //解除计时器, 避免有两个计时器监视,重新绑定一个新的计时器
     if(!recv_error_ && http_connection_state_ == HttpConnectionState::CONNECTED) {
+        // 未出现错误，重新更新事件
         if(event != 0) {
             if(keep_alive_)
                 ms_timeout = DEFAULT_KEEP_ALIVE_TIME;
@@ -541,17 +583,56 @@ void lgx::net::http::handle_connect() {
             event |= (EPOLLIN | EPOLLET);
             ms_timeout = DEFAULT_KEEP_ALIVE_TIME >> 2;
         }
-        eventloop_->update_epoll(sp_channel_, ms_timeout);
+        eventloop_->update_epoll(sp_channel_, ms_timeout); // 更新事件
     } else if (!recv_error_ && http_connection_state_ == HttpConnectionState::DISCONNECTING
                && (event & EPOLLOUT)) {
         event = (EPOLLOUT | EPOLLET);
     } else {
+        // 出现错误，回调handle_close
+        wait_event_count_ ++;
         eventloop_->run_in_loop(std::bind(&http::handle_close, shared_from_this()));
     }
 }
 
+void lgx::net::http::push_data(const std::string &data) {
+    lgx::thread::mutex_lock_guard guard(mutex_lock_);
+    // 存在数据正在写入
+    lgx::util::vessel *out_buffer = new lgx::util::vessel();
+
+    std::string header_buffer;
+    header_buffer += "HTTP/1.1 " + std::to_string(static_cast<int>(HttpResponseCode::MOVED_PERMANENTLY)) + "\r\n";
+    header_buffer += "Access-Control-Allow-Origin: *\r\n";
+    header_buffer += "Server: " + std::string(SERVER_NAME) + "\r\n";
+    header_buffer += "Connection: Keep-Alive\r\n";
+    header_buffer += "Cookie: session=" + session_ + "\r\n";
+    header_buffer += "Content-Length: " + std::to_string(data.size()) + "\r\n";
+    header_buffer += "\r\n";
+    *out_buffer << header_buffer;
+    *out_buffer << data;
+    out_buffer_queue_.push(out_buffer);
+    wait_event_count_ --;
+#ifdef DEBUG
+    dbg_log("push_data: " + data);
+#endif
+    // 采用目标http的线程进行更新epoll事件
+    eventloop_->run_in_loop(std::bind(&http::handle_push_data_reset, shared_from_this()));
+}
+// 采用单一线程进行更新epoll事件，多线程易出现条件竞争，导致内存错误
+void lgx::net::http::handle_push_data_reset() {
+    int ms_timeout = 0;
+    __uint32_t &event = sp_channel_->get_event();
+    unbind_timer(); //解除计时器, 避免有两个计时器监视,重新绑定一个新的计时器
+    if(keep_alive_)
+        ms_timeout = DEFAULT_KEEP_ALIVE_TIME;
+    else
+        ms_timeout = DEFAULT_EXPIRED_TIME;
+    event |= EPOLLIN | EPOLLET | EPOLLOUT;
+    // 回调写入函数
+    eventloop_->update_epoll(sp_channel_, ms_timeout); // 更新事件
+}
+
 void lgx::net::http::handle_error(int error_number, std::string message) {
-    out_buffer_.clear();
+    lgx::util::vessel *out_buffer = new lgx::util::vessel();
     message = " " + message;
     std::string header_buffer, body_buffer;
     body_buffer += "<html><title>request error</title>";
@@ -566,11 +647,13 @@ void lgx::net::http::handle_error(int error_number, std::string message) {
     //header_buffer += "Access-Control-Allow-Origin: *\r\n";
     header_buffer += "Server: " + std::string(SERVER_NAME) + "\r\n";
     header_buffer += "Connection: Close\r\n";
+    header_buffer += "Cookie: session=" + session_ + "\r\n";
     header_buffer += "Content-Type: text/html\r\n";
     header_buffer += "Content-Length: " + std::to_string(body_buffer.size()) + "\r\n";
     header_buffer += "\r\n";
-    out_buffer_ << header_buffer;
-    out_buffer_ << body_buffer;
+    *out_buffer << header_buffer;
+    *out_buffer << body_buffer;
+    out_buffer_queue_.push(out_buffer);
     handle_write();
 }
 
@@ -581,15 +664,17 @@ void lgx::net::http::str_lower(std::string &str) {
 }
 
 void lgx::net::http::redirect(const std::string &url) {
-    out_buffer_.clear();
+    lgx::util::vessel *out_buffer = new lgx::util::vessel();
     std::string header_buffer;
     header_buffer += "HTTP/1.1 " + std::to_string(static_cast<int>(HttpResponseCode::MOVED_PERMANENTLY)) + "\r\n";
     header_buffer += "Access-Control-Allow-Origin: *\r\n";
     header_buffer += "Server: " + std::string(SERVER_NAME) + "\r\n";
     header_buffer += "Connection: Keep-Alive\r\n";
+    header_buffer += "Cookie: session=" + session_ + "\r\n";
     header_buffer += "Location: " + url + "\r\n";
     header_buffer += "Content-Length: 0\r\n";
     header_buffer += "\r\n";
-    out_buffer_ << header_buffer;
+    *out_buffer << header_buffer;
+    out_buffer_queue_.push(out_buffer);
     handle_write();
 }

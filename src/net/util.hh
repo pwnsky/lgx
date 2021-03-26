@@ -21,7 +21,7 @@ ssize_t read(int fd, lgx::util::vessel &in_buffer);
 
 ssize_t write(int fd, void *buffer, size_t length);
 ssize_t write(int fd, lgx::util::vessel &out_buffer);
-
+ssize_t write(int fd, lgx::util::vessel *out_buffer);
 void ignore_sigpipe();                  //avoid server terminate with SIGPIPE signal
 bool set_fd_nonblocking(int listen_fd); //set fd as non bloking
 void set_fd_nodelay(int fd);            //set fd no delay

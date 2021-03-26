@@ -9,7 +9,8 @@
 #include <queue>
 #include "util/json.hh"
 
-#define d_cout std::cout << "[" << __FILE__ << " line: " << __LINE__ << " thread id: " << std::hex <<  pthread_self() << std::oct << "] "
+//#define d_cout std::cout << "[" << __FILE__ << " line: " << __LINE__ << " thread id: " << std::hex <<  pthread_self() << std::oct << "] "
+#define d_cout std::cout << "[" << __FILE__ << " line: " << __LINE__ << "] "
 #define dbg_log(x) d_cout << x << std::endl
 #define log_dbg(x) "LGX DEBUG:" + std::string(__FILE__) + ":" + std::to_string(__LINE__) + "\n" + std::string(x) + "\n"
 
@@ -22,7 +23,7 @@
 #define MAX_BUF_SIZE          0x1000
 #define HTTP_MAX_NOT_FOUND_TIMES 25
 #define MAX_HTTP_RECV_BUF_SIZE 0x4000
-#define LGX_VERSION "1.8"
+#define LGX_VERSION "1.9"
 #define SERVER_NAME "lgx " LGX_VERSION
 
 namespace lgx {
@@ -73,6 +74,7 @@ using sp_channel = std::shared_ptr<lgx::net::channel>;
 namespace work {
 class work;
 enum class ResponseCode;
+class push;
 }
 // namespace work end
 
@@ -86,6 +88,7 @@ using json = nlohmann::json;
 std::string date_time();
 class url;
 class firewall;
+class md5;
 }
 // namespace util end
 
@@ -112,6 +115,7 @@ extern std::string config_path;
 //    extern lgx::db::mysql::sql *sql;
 //    extern lgx::thread::mutex_lock lock;
 //}
+extern std::map<std::string, std::weak_ptr<lgx::net::http>> sessions;
 }
 // namespace data end
 class start_up;

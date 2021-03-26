@@ -15,7 +15,7 @@ public:
     timer(timer &t);
     ~timer();
     void update(int ms_timeout);
-    bool is_valid();
+    bool is_expired();
     void clear();
     void set_deleted();
     bool is_deleted();

@@ -141,6 +141,27 @@ ssize_t lgx::net::util::write(int fd, lgx::util::vessel &out_buffer) {
     return write_sum;
 }
 
+ssize_t lgx::net::util::write(int fd, lgx::util::vessel *out_buffer) {
+    ssize_t write_len = 0;
+    ssize_t write_sum = 0;
+    while(out_buffer->size() > 0) {
+        write_len = ::write(fd, out_buffer->data(), out_buffer->size());
+        if(write_len < 0) {
+            if(errno == EINTR)
+                continue;
+            else if(errno == EAGAIN) {
+                //std::cout << "EAGAIN\n";
+                return write_sum;
+            }else {
+                return -1;
+            }
+        }
+        write_sum += write_len;
+        out_buffer->sub(write_len);
+    }
+    return write_sum;
+}
+
 void lgx::net::util::ignore_sigpipe() {
     struct sigaction sa;
     bzero(&sa, sizeof(sa));

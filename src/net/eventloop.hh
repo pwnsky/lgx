@@ -43,5 +43,5 @@ private:
     void wake_up(); //for write one byte to client
     void run_pending_callback_func();
     void handle_read();
-    void handle_connect();
+    void handle_reset();
 };

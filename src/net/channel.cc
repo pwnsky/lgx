@@ -42,9 +42,9 @@ void lgx::net::channel::handle_write() {
     }
 }
 
-void lgx::net::channel::handle_connect() {
-    if(connected_handler_) {
-        connected_handler_();
+void lgx::net::channel::handle_reset() {
+    if(reset_handler_) {
+        reset_handler_();
     }
 }
 void lgx::net::channel::handle_error() {
@@ -54,7 +54,7 @@ void lgx::net::channel::handle_error() {
 }
 
 void lgx::net::channel::handle_event() {
-    event_ = 0;
+    event_ = 0; //处理后的事件清0
     if((revent_ & EPOLLHUP) && !(revent_ & EPOLLIN)) {
         event_ = 0;
         return;
@@ -66,18 +66,18 @@ void lgx::net::channel::handle_event() {
         return ;
     }
 
+    // 优先处理有数据将要写入
+    if(revent_ & EPOLLOUT) {
+        handle_write();
+    }
+
     // 有数据来临
     if(revent_ & (EPOLLIN | EPOLLPRI | EPOLLRDHUP)) {
         handle_read();
     }
 
-    // 有数据将要写入
-    if(revent_ & EPOLLOUT) {
-        handle_write();
-    }
-
     //*******
-    handle_connect();
+    handle_reset();
 }
 
 void lgx::net::channel::set_revent(__uint32_t revent) {
@@ -100,8 +100,8 @@ void lgx::net::channel::set_error_handler(lgx::util::callback  &&error_handler) 
 }
 
 // For deal with connected client event
-void lgx::net::channel::set_connected_handler(lgx::util::callback  &&connected_handler) {
-    connected_handler_ = connected_handler;
+void lgx::net::channel::set_reset_handler(lgx::util::callback  &&reset_handler) {
+    reset_handler_ = reset_handler;
 }
 
 __uint32_t &lgx::net::channel::get_event() {

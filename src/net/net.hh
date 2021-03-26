@@ -30,7 +30,7 @@ public:
     void start();
     void stop();
     void handle_new_connection();
-    void handle_connected();
+    void handle_reset();
 private:
     int listen();    // Bind port_ and listen
     bool started_;   // Store state of net if started

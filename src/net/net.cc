@@ -50,7 +50,7 @@ void lgx::net::net::start() {
 
     accept_channel_->set_event(EPOLLIN | EPOLLET); // Set as accept data event
     accept_channel_->set_read_handler(std::bind(&net::handle_new_connection, this));
-    accept_channel_->set_connected_handler(std::bind(&net::handle_connected, this));
+    accept_channel_->set_reset_handler(std::bind(&net::handle_reset, this));
     base_eventloop_->add_to_epoll(accept_channel_, 0);
     started_ = true;
     base_eventloop_->loop(); //loop
@@ -122,6 +122,7 @@ void lgx::net::net::handle_new_connection() {
         sp_http sph(new http(accept_fd, next_eventloop));
         sph->set_client_info(client_ip, client_port);
         sph->get_sp_channel()->set_holder(sph);
+        lgx::data::sessions[sph->get_session()] = sph;
         next_eventloop->push_back(std::bind(&http::new_evnet, sph));
     }
     accept_channel_->set_event(EPOLLIN | EPOLLET);
@@ -133,7 +134,7 @@ void lgx::net::net::stop() {
 	std::cout << "stop net module\n";
 }
 
-void lgx::net::net::handle_connected() {
+void lgx::net::net::handle_reset() {
     //d_cout << "HandleConnected\n";
     base_eventloop_->update_epoll(accept_channel_);
 }

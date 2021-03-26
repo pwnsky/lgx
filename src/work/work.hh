@@ -14,6 +14,8 @@
 #include "../base.hh"
 #include "../log/log.hh"
 #include "../util/url.hh"
+#include "../util/vessel.hh"
+#include "../net/http.hh"
 
 using logger = lgx::log::logger;
 

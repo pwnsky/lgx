@@ -29,14 +29,20 @@ void lgx::net::timer::update(int ms_timeout) {
     expired_ms_time_ = (((time_now.tv_sec % 10000) * 1000) + (time_now.tv_usec / 1000)) + ms_timeout;
 }
 
-bool lgx::net::timer::is_valid() {
+bool lgx::net::timer::is_expired() {
     struct timeval time_now;
     gettimeofday(&time_now, nullptr);
     time_t now_ms_time = (((time_now.tv_sec % 10000) * 1000) + (time_now.tv_usec / 1000));
-    if(now_ms_time < expired_ms_time_) {
-        return true;
-    }else {
+    if(sp_http_ != nullptr) { // 若拥有待处理事件，则继续等待
+        if(sp_http_->is_deleteble()) {
+            update(5 * 1000); //等待5s时间
+        }
         return false;
+    }
+    if(now_ms_time < expired_ms_time_) {
+        return false;
+    }else {
+        return true;
     }
 }
 
@@ -65,7 +71,7 @@ void lgx::net::timer_manager::handle_expired_event() {
         sp_timer sp_net_timer = sort_sp_timer_queue.top();
         if(sp_net_timer->is_deleted()) {
             sort_sp_timer_queue.pop();
-        }else if (!sp_net_timer->is_valid()) {
+        }else if (sp_net_timer->is_expired()) {
             sort_sp_timer_queue.pop();
         }else
             break;

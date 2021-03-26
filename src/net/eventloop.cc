@@ -9,24 +9,23 @@ lgx::net::eventloop::eventloop() :
     sp_epoll_(new epoll()),
     sp_awake_channel_(new channel(this, awake_fd_))
 {
-    sp_awake_channel_->set_event(EPOLLIN | EPOLLET);
+    sp_awake_channel_->set_event(EPOLLIN | EPOLLET); //init epoll event
     sp_awake_channel_->set_read_handler(std::bind(&eventloop::handle_read, this));
-    sp_awake_channel_->set_connected_handler(std::bind(&eventloop::handle_connect, this));
+    sp_awake_channel_->set_reset_handler(std::bind(&eventloop::handle_reset, this));
     sp_epoll_->add(sp_awake_channel_, 0);
 }
 
+// 读取数据传输到缓冲区前的数据
 void lgx::net::eventloop::handle_read() {
-    // 读取数据传输到缓冲区前的数据
     char buf[8];
     ssize_t read_len = lgx::net::util::read(awake_fd_, &buf, sizeof(buf));
     if(read_len != sizeof (buf)) {
         std::cout << "eventloop::hand_read() reads " << read_len << "instead of 8\n";
     }
-    sp_awake_channel_->set_event(EPOLLIN | EPOLLET);
 }
 
-void lgx::net::eventloop::handle_connect() {
-
+void lgx::net::eventloop::handle_reset() {
+    sp_awake_channel_->set_event(EPOLLIN | EPOLLET);
 }
 
 void lgx::net::eventloop::update_epoll(sp_channel spc, int ms_timeout) {
@@ -83,7 +82,7 @@ void lgx::net::eventloop::run_in_loop(lgx::util::callback &&func) {
     if(is_in_loop_thread())
         func();
     else
-        push_back(std::move(func));
+        push_back(std::move(func)); //加入待处理函数中
 }
 
 void lgx::net::eventloop::push_back(lgx::util::callback &&func) {
