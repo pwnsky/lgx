@@ -141,7 +141,7 @@ ssize_t lgx::net::util::write(int fd, lgx::util::vessel &out_buffer) {
     return write_sum;
 }
 
-ssize_t lgx::net::util::write(int fd, lgx::util::vessel *out_buffer) {
+ssize_t lgx::net::util::write(int fd, std::shared_ptr<lgx::util::vessel> out_buffer) {
     ssize_t write_len = 0;
     ssize_t write_sum = 0;
     while(out_buffer->size() > 0) {

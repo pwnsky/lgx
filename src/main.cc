@@ -4,6 +4,7 @@
 #include <unistd.h>
 #define UNUSED(var) do { (void)(var); } while (false)
 extern std::string lgx::data::config_path;
+std::string lgx::data::os_info;
 
 lgx::start_up startup;
 
@@ -25,6 +26,7 @@ void help() {
                  "-a   about author\n"
                  ;
 }
+
 void init() {
     //std::ios::sync_with_stdio(false);
     //std::cin.tie(nullptr);

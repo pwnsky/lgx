@@ -27,6 +27,7 @@
 #define SERVER_NAME "lgx " LGX_VERSION
 
 namespace lgx {
+
 namespace thread {
 class noncopyable;
 class thread;
@@ -74,7 +75,7 @@ using sp_channel = std::shared_ptr<lgx::net::channel>;
 namespace work {
 class work;
 enum class ResponseCode;
-class push;
+class chat;
 }
 // namespace work end
 
@@ -101,6 +102,42 @@ class log_thread;
 }
 // namespace log end
 
+
+// namecpce of chat
+namespace chat {
+enum class request_type;
+struct msg {
+    enum class type {
+        USER,
+        GROUP,
+        System
+    };
+    msg::type type;
+    lgx::util::json content;
+    std::string tid;
+    std::string uid;
+    time_t time;
+};
+
+struct user{
+public:
+    std::string uid;
+    std::string name;
+    std::string client_session;
+};
+
+struct group {
+public:
+    std::string holder_uid;
+    std::string gid;
+    std::string name;
+    std::list<std::string> member_uid_list;
+};
+}
+// namecpce of chat end
+
+
+
 // namespace data start
 namespace data {
 extern std::string root_path;
@@ -111,11 +148,16 @@ extern lgx::log::log *p_log;
 extern std::vector<std::string> forbid_ips;
 extern lgx::util::firewall *firewall;
 extern std::string config_path;
+extern std::string os_info;
 //namespace mysql {
 //    extern lgx::db::mysql::sql *sql;
 //    extern lgx::thread::mutex_lock lock;
 //}
 extern std::map<std::string, std::weak_ptr<lgx::net::http>> sessions;
+
+extern std::unordered_map<std::string, lgx::chat::user> users;
+extern std::unordered_map<std::string, lgx::chat::group> groups;
+
 }
 // namespace data end
 class start_up;

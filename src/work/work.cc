@@ -3,6 +3,9 @@
 std::string lgx::data::root_path;
 std::string lgx::data::web_page;
 std::string lgx::data::web_404_page;
+// chat
+std::unordered_map<std::string, lgx::chat::user> lgx::data::users;
+std::unordered_map<std::string, lgx::chat::group> lgx::data::groups;
 
 lgx::work::work::work(const std::map<std::string, std::string> &map_header_info,
                       const std::map<std::string, std::string> &map_client_info,
@@ -16,9 +19,6 @@ lgx::work::work::work(const std::map<std::string, std::string> &map_header_info,
 
 }
 
-void lgx::work::work::set_fd(int fd) {
-    fd_ = fd;
-}
 void lgx::work::work::set_send_file_handler(lgx::util::callback1 send_file_handler) {
     send_file_handler_ = send_file_handler;
 }
@@ -28,26 +28,32 @@ void lgx::work::work::set_send_data_handler(lgx::util::callback2 send_data_handl
 }
 
 void lgx::work::work::run() {
+
     std::string http_method;
     try {
         http_method = map_header_info_.at("method");
+        session_ = map_client_info_.at("session");
     } catch (std::out_of_range e) {
         logger() << log_dbg("no http method" + std::string(e.what()) + '\n');
         error_times_ ++;
         return;
     }
-
+#ifdef DEBUG
+    d_cout << "method: "<< http_method << " url:[" << map_url_info_["url"] << "]\n";
+#endif
     if(parse_url() == false) {
         logger() << log_dbg("ERROR_PARSING_URL");
         error_times_ ++;
         response(ResponseCode::ERROR_PARSING_URL);
         return;
     }
+
     try {
         request_ = map_url_value_info_.at("request");
-        platform_ = map_url_value_info_.at("platform");
-    } catch (std::out_of_range e) {}
-    //std::cout << "method: "<< http_method << " url:[" << map_url_info_["url"] << "]\n";
+    } catch (std::out_of_range e) {
+        request_ = "none";
+    }
+
     if(http_method == "get") {
         handle_get();
     }else if(http_method == "put") {
@@ -73,10 +79,10 @@ void lgx::work::work::handle_get() {
         if(dir && request_.empty())
             path = lgx::data::root_path + path + lgx::data::web_page;
         else if(request_ == "get_datatime") {
-            client_get_datetime();
+            client_get_server_datetime();
             get_file = false;
         }else if(request_ == "get_info") {
-            client_get_info();
+            client_get_server_info();
             get_file = false;
         }
         else {
@@ -101,24 +107,20 @@ bool lgx::work::work::is_dir(const std::string &path) {
 }
 
 void lgx::work::work::handle_post() {
-    //std::cout << "run in handle_post\n";
-    std::string out;
-    if(content_.to_string() == "login") {
-        out = "ok";
-        send_data(".txt", out);
-        return;
-    }
-    std::string session = map_client_info_.at("session");
-    for (auto s : lgx::data::sessions) {
-        //out += s.first + "  ";
-        if(!s.second.expired()) {
-            lgx::net::sp_http sp = s.second.lock();
-            sp->push_data(session + " say: " + content_.to_string() + "\n");
+    //std::cout << "url path: " << map_url_info_["path"] << "\n";
+    lgx::chat::request_type request_type = lgx::chat::request::to_enum(request_);
+        switch (request_type) {
+        case lgx::chat::request_type::login: {
+            chat_login();
+        } break;
+        case lgx::chat::request_type::send_msg_to_user: {
+            chat_msg_to_user();
+        } break;
+        default: {
+            response(ResponseCode::NO_ACCESS);
+        } break;
         }
-        //out += s.second.expired();
-    }
-    //out += "\n";
-    //send_data(".txt", out);
+
 }
 
 bool lgx::work::work::parse_url() {
@@ -140,11 +142,12 @@ bool lgx::work::work::parse_url() {
     if(first_value_pos > 0) {
         value_url = url.substr(first_value_pos + 1);
         path = url.substr(0, first_value_pos);
-
     }else {
         path = url;
     }
+
     map_url_info_["path"] = path;
+
     // check is have value
     if(value_url.empty()) return true;
     value_url += '&';
@@ -164,8 +167,13 @@ bool lgx::work::work::parse_url() {
         std::string value = get_one.substr(value_pos + 1);
         if(key.empty() || value.empty()) continue;
         map_url_value_info_[key] = value;
-        //std::cout << "get_one: [" << get_one << "] key: [" << key << "] value: [" << map_url_value_info_[key] << "]\n";
+
     }
+
+//std::cout << " url args: " << url;
+//    for (auto a : map_url_value_info_) {
+//        std::cout << "key: " << a.first << " value: " << a.second << "\n";
+//    }
     return true;
 }
 
@@ -200,6 +208,13 @@ void lgx::work::work::send_json(json &json_obj) {
     send_data(".json", data);
 }
 
+std::string lgx::work::work::json_to_string(json &json_obj) {
+    std::ostringstream json_sstream;
+    json_sstream << json_obj;
+    return json_sstream.str();
+}
+
+
 std::string lgx::work::work::get_date_time() {
     char time_str[128] = {0};
     struct timeval tv;
@@ -211,7 +226,7 @@ std::string lgx::work::work::get_date_time() {
     return std::string(time_str);
 }
 
-void lgx::work::work::client_get_datetime() {
+void lgx::work::work::client_get_server_datetime() {
     json json_obj = {
         { "server", SERVER_NAME },
         { "request", request_ },
@@ -222,7 +237,7 @@ void lgx::work::work::client_get_datetime() {
     send_json(json_obj);
 }
 
-void lgx::work::work::client_get_info() {
+void lgx::work::work::client_get_server_info() {
     std::string client_ip;
     std::string client_port;
     try {
@@ -243,6 +258,224 @@ void lgx::work::work::client_get_info() {
           }}
     };
     send_json(json_obj);
+}
+
+void lgx::work::work::chat_register() {
+
+}
+
+void lgx::work::work::chat_login() {
+    std::cout << "call lgx::work::work::chat_login\n";
+    json recv_json_obj;
+    try {
+        recv_json_obj = json::parse(content_.to_string());
+    }  catch (json::parse_error e) {
+        response(ResponseCode::ERROR_PARSING_CONTENT);
+        return;
+    }
+
+    std::string name;
+    try {
+        name = recv_json_obj["content"]["name"];
+    }  catch (json::type_error) {
+        response(ResponseCode::ERROR_JSON_CONTENT_TYPE);
+        return;
+    }
+    // update info
+    lgx::chat::user user;
+    user.client_session = session_;
+    user.name = name;
+    user.uid = lgx::util::md5(name).to_lower_case_string();
+    lgx::data::users[user.uid] = user;
+
+    json json_obj = {
+        { "server", SERVER_NAME },
+        { "request", request_ },
+        { "code", ResponseCode::SUCCESS },
+        { "datetime" , get_date_time() },
+        { "content" , { {"uid" , user.uid } } }
+    };
+    send_json(json_obj);
+}
+
+void lgx::work::work::chat_create_group() {
+    json recv_json_obj;
+    try {
+        recv_json_obj = json::parse(content_.to_string());
+    } catch (json::parse_error e) {
+        response(ResponseCode::ERROR_PARSING_CONTENT);
+        return;
+    }
+
+    std::string group_name;
+    std::string holder_uid;
+    try {
+        holder_uid = recv_json_obj["content"]["holder_uid"];
+        group_name = recv_json_obj["content"]["group_name"];
+    }  catch (json::type_error) {
+        response(ResponseCode::ERROR_JSON_CONTENT_TYPE);
+        return;
+    }
+
+    // update info
+    lgx::chat::group group;
+    group.name = group_name;
+    group.gid = lgx::util::md5(group_name).to_lower_case_string();
+    group.holder_uid = holder_uid;
+    group.member_uid_list.push_back(holder_uid);
+    lgx::data::groups[group.gid] = group;
+}
+
+void lgx::work::work::chat_join_group() {
+    json recv_json_obj;
+    try {
+        recv_json_obj = json::parse(content_.to_string());
+    } catch (json::parse_error e) {
+        response(ResponseCode::ERROR_PARSING_CONTENT);
+        return;
+    }
+
+    std::string uid;
+    std::string gid;
+    try {
+        uid = recv_json_obj["content"]["uid"];
+        gid = recv_json_obj["content"]["gid"];
+    }  catch (json::type_error) {
+        response(ResponseCode::ERROR_JSON_CONTENT_TYPE);
+        return;
+    }
+
+    auto group_iter= lgx::data::groups.find(gid);
+    if(group_iter == lgx::data::groups.end()) {
+        return;
+    }
+
+    group_iter->second.member_uid_list.push_back(uid);
+}
+
+void lgx::work::work::chat_get_group_all_member_info() {
+
+}
+
+void lgx::work::work::chat_msg_to_group() {
+    json recv_json_obj;
+    try {
+        recv_json_obj = json::parse(content_.to_string());
+    } catch (json::parse_error e) {
+        response(ResponseCode::ERROR_PARSING_CONTENT);
+        return;
+    }
+    std::string uid;
+    std::string gid;
+    std::string msg;
+    try {
+        uid = recv_json_obj["content"]["uid"];
+        gid = recv_json_obj["content"]["gid"];
+        msg = recv_json_obj["content"]["msg"];
+    } catch (json::type_error) {
+        response(ResponseCode::ERROR_JSON_CONTENT_TYPE);
+        return;
+    }
+
+    // 查找group
+    auto group_iter= lgx::data::groups.find(gid);
+    if(group_iter == lgx::data::groups.end()) {
+        return;
+    }
+
+    util::json send_json = {
+        { "server", SERVER_NAME },
+        { "code", ResponseCode::SUCCESS },
+        { "request", "recv_group_msg"},
+        { "datetime" , lgx::util::date_time() },
+        { "platform", platform_ },
+        { "content-type", "msg"},
+        { "content", {
+              {"uid", uid},
+              {"gid", gid},
+              {"msg", msg},
+              {"type", "group"},
+          }}
+    };
+    std::string send_content = json_to_string(send_json);
+
+    // 循环发送
+    for(auto m_uid : group_iter->second.member_uid_list) {
+        // 查找 user
+        auto user_iter= lgx::data::users.find(m_uid);
+        if(user_iter == lgx::data::users.end()) {
+            continue;
+        }
+        //查找 session
+        auto session_iter= lgx::data::sessions.find(user_iter->second.client_session);
+        if(session_iter == lgx::data::sessions.end()) {
+            continue;
+        }
+
+        // 发送消息
+        if(!session_iter->second.expired()) {
+            lgx::net::sp_http sp = session_iter->second.lock();
+            sp->push_data(send_content);
+        }
+    }
+}
+
+void lgx::work::work::chat_msg_to_user() {
+#ifdef DEBUG
+    d_cout << "call lgx::work::work::chat_msg_to_user\n";
+#endif
+    json recv_json_obj;
+    try {
+        recv_json_obj = json::parse(content_.to_string());
+    }  catch (json::parse_error e) {
+        response(ResponseCode::ERROR_PARSING_CONTENT);
+        return;
+    }
+    std::string uid;
+    std::string tid;
+    std::string msg;
+    try {
+        uid = recv_json_obj["content"]["uid"];
+        tid = recv_json_obj["content"]["tid"];
+        msg = recv_json_obj["content"]["msg"];
+    } catch (json::type_error) {
+        response(ResponseCode::ERROR_JSON_CONTENT_TYPE);
+        return;
+    }
+
+    auto user_iter= lgx::data::users.find(tid);
+    if(user_iter == lgx::data::users.end()) {
+        response(ResponseCode::FAILURE);
+        return;
+    }
+
+    //查找 session
+    auto session_iter= lgx::data::sessions.find(user_iter->second.client_session);
+    if(session_iter == lgx::data::sessions.end()) {
+        response(ResponseCode::FAILURE);
+        return;;
+    }
+    util::json send_json = {
+        { "server", SERVER_NAME },
+        { "code", ResponseCode::SUCCESS },
+        { "request", "recv_user_msg"},
+        { "datetime" , lgx::util::date_time() },
+        { "platform", platform_ },
+        { "content-type", "msg"},
+        { "content", {
+              {"uid", uid},
+              {"msg", msg},
+              {"type", "user"},
+          }}
+    };
+    std::string send_content = json_to_string(send_json);
+    // 发送消息
+    if(!session_iter->second.expired()) {
+        lgx::net::sp_http sp = session_iter->second.lock();
+        sp->push_data(send_content);
+        std::cout << "send ok\n";
+    }
+    response(ResponseCode::SUCCESS);
 }
 
 

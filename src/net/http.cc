@@ -4,11 +4,12 @@ std::unordered_map<std::string, std::string> lgx::net::http_content_type::umap_t
 pthread_once_t lgx::net::http_content_type::once_control_;
 
 const __uint32_t EPOLL_DEFAULT_EVENT = EPOLLIN | EPOLLET | EPOLLONESHOT;
-const int DEFAULT_EXPIRED_TIME = 1000 * 5;          //ms
+const int DEFAULT_EXPIRED_TIME = 5000;              //ms
 const int DEFAULT_KEEP_ALIVE_TIME = 3 * 60 * 1000;  //ms
 std::map<std::string, std::weak_ptr<lgx::net::http>> lgx::data::sessions;
 
 void lgx::net::http_content_type::init() {
+    //std::cout << "ptrhead_init";
     //init http content type
     http_content_type::umap_type_[".html"] = "text/html";
     http_content_type::umap_type_[".css"] = "text/css";
@@ -47,33 +48,33 @@ lgx::net::http::http(int fd,eventloop *elp) :
     http_connection_state_(HttpConnectionState::CONNECTED),
     http_process_state_(HttpRecvState::PARSE_HEADER),
     keep_alive_(false) {
-#ifdef DEBUG
-    dbg_log("lgx::net::http::http(int fd,eventloop *elp)");
-#endif
     //set callback function handler
     sp_channel_->set_read_handler(std::bind(&http::handle_read, this));
     sp_channel_->set_write_handler(std::bind(&http::handle_write, this));
     sp_channel_->set_reset_handler(std::bind(&http::handle_reset, this));
     session_ = lgx::util::md5(std::to_string(time(nullptr)) + "lgx").to_string();
 }
-
 lgx::net::http::~http() {
     close(fd_);
-    // 删除待发送数据
+    // delete all
     while(this->out_buffer_queue_.size() > 0) {
-        auto buf = out_buffer_queue_.front();
-        out_buffer_queue_.pop();
-        delete  buf;
+            auto buf = out_buffer_queue_.front();
+            out_buffer_queue_.pop();
     }
-    //删除自己的session
-    lgx::data::sessions.erase(lgx::data::sessions.find(session_));
-#ifdef DEBUG
-    dbg_log("lgx::net::http::~http()");
-#endif
+
+    // fixed bug....
+    try {
+        auto iter = lgx::data::sessions.find(session_);
+        if(iter != lgx::data::sessions.end())
+            lgx::data::sessions.erase(iter);
+    }  catch (std::out_of_range) {
+        std::cout << "~http out of orange!";
+    }
 }
 
 void lgx::net::http::reset() {
     http_process_state_ = HttpRecvState::PARSE_HEADER;
+    in_content_buffer_.clear();
     in_buffer_.clear();
     map_header_info_.clear();
     recv_error_ = false;
@@ -107,15 +108,13 @@ lgx::net::eventloop *lgx::net::http::get_eventloop() {
     return eventloop_;
 }
 
-// 解除定时器
 void lgx::net::http::unbind_timer() {
     if(wp_timer_.lock()) {
         sp_timer sp_net_timer(wp_timer_.lock());
-        sp_net_timer->clear(); // 解除http对象
+        sp_net_timer->clear();
         wp_timer_.reset();
     }
 }
-
 // 接收数据回调
 void lgx::net::http::handle_read() {
     __uint32_t &event = sp_channel_->get_event();
@@ -128,9 +127,9 @@ void lgx::net::http::handle_read() {
     }
 
     if(lgx::data::firewall->is_forbid(client_ip_)) {
-       lgx::net::util::shutdown_read_fd(fd_);
-       event = EPOLLET;
-       return;
+        lgx::net::util::shutdown_read_fd(fd_);
+        event = EPOLLET;
+        return;
     }
 
     // 若消息处于发送状态，则继续发送剩余的数据。
@@ -157,7 +156,7 @@ void lgx::net::http::handle_read() {
         }else if(read_len < 0) { // Read data error
             perror("ReadData ");
             recv_error_ = true;
-            handle_error((int)HttpResponseCode::BAD_REQUEST, "Bad Request");
+            response_error((int)HttpResponseCode::BAD_REQUEST, "Bad Request");
         }
 
         // Parse http header
@@ -168,7 +167,7 @@ void lgx::net::http::handle_read() {
             if(http_parse_header_result == HttpParseHeaderResult::ERROR) {
                 logger() << "PARSEHEADER_ERROR";
                 recv_error_ = true;
-                handle_error((int)HttpResponseCode::BAD_REQUEST, "Bad Request");
+                response_error((int)HttpResponseCode::BAD_REQUEST, "Bad Request");
                 error_times_ ++;
                 break;
             }
@@ -182,14 +181,14 @@ void lgx::net::http::handle_read() {
                 } else {
                     logger() << log_dbg("not found contnt-length");
                     recv_error_ = true;
-                    handle_error((int)HttpResponseCode::BAD_REQUEST, "Bad Request");
+                    response_error((int)HttpResponseCode::BAD_REQUEST, "Bad Request");
                     error_times_ ++;
                     break;
                 }
                 if(content_length_ < 0) {
                     logger() << log_dbg("not found contnt-length");
                     recv_error_ = true;
-                    handle_error((int)HttpResponseCode::BAD_REQUEST, "Bad Request");
+                    response_error((int)HttpResponseCode::BAD_REQUEST, "Bad Request");
                     error_times_ ++;
                     break;
                 }
@@ -346,18 +345,20 @@ lgx::net::HttpParseHeaderResult lgx::net::http::parse_header() {
 
 void lgx::net::http::handle_work() {
     lgx::work::work w(map_header_info_, map_client_info_, in_buffer_, error_times_);
-    w.set_fd(fd_);
     w.set_send_data_handler(std::bind(&http::send_data, this, std::placeholders::_1, std::placeholders::_2));
     w.set_send_file_handler(std::bind(&http::send_file, this, std::placeholders::_1));
     w.run();
 }
 
 void lgx::net::http::handle_write() {
+    //lgx::thread::mutex_lock_guard guard(mutex_lock_);
     __uint32_t &event = sp_channel_->get_event();
+
     if(out_buffer_queue_.size() == 0)
         return;
 
     out_buffer_ = out_buffer_queue_.front();
+
     /*
     if(event & EPOLLOUT) {
         std::cout << "lgx::net::http::handle_write EPOLLOUT\n";
@@ -372,15 +373,16 @@ void lgx::net::http::handle_write() {
         if(util::write(fd_, out_buffer_) < 0) {
             perror("write header data");
             sp_channel_->set_event(0);
-            out_buffer_->clear();
+            //out_buffer_->clear();
         }
         if(out_buffer_->size() == 0) { // 数据发送完毕后，若out_buffer_queue_还存在待发送数据，则继续发送
             if(out_buffer_queue_.size() > 0)
                 out_buffer_queue_.pop();
-            delete out_buffer_;
-            out_buffer_ = nullptr;
-            if(out_buffer_queue_.size() > 0)
+            out_buffer_.reset();
+            if(out_buffer_queue_.size() > 0) {
                 event |= EPOLLOUT; // next round set event as EPOLLOUT
+                //std::cout << "剩余。。。。\n";
+            }
             return;
         }
     }
@@ -401,7 +403,7 @@ std::string lgx::net::http::get_suffix(std::string file_name) {
 }
 
 void lgx::net::http::send_data(const std::string &type,const std::string &content) {
-    lgx::util::vessel *out_buffer = new lgx::util::vessel();
+    std::shared_ptr<lgx::util::vessel> out_buffer = std::shared_ptr<lgx::util::vessel>(new lgx::util::vessel());
     *out_buffer << "HTTP/1.1 200 OK\r\n";
     if (map_header_info_.find("connection") != map_header_info_.end() &&
             (map_header_info_["connection"] == "keep-alive")) {
@@ -422,20 +424,16 @@ void lgx::net::http::send_data(const std::string &type,const std::string &conten
 
 // Send file
 void lgx::net::http::send_file(const std::string &file_name) {
-    if(!check_file_path(file_name)) {
+    if(path_invalid(file_name)) {
         handle_not_found();
         return;
     }
-    //handle_error((int)HttpResponseCode::SEE_OTHER, "Internal server error");
-    //return ;
-
     do {
         if(recv_error_ || http_connection_state_ == HttpConnectionState::DISCONNECTED) {
             break;;
         }
         int fd = open(file_name.c_str(), O_RDONLY);
         if(fd == -1) {
-            std::cout << log_dbg("Open not found file [" + file_name + "] failed!\n");
             logger() << log_dbg("Open file [" + file_name + "] failed!");
             handle_not_found();
             not_found_times_ ++;
@@ -444,7 +442,7 @@ void lgx::net::http::send_file(const std::string &file_name) {
 
         struct stat stat_buf;
         if(fstat(fd, &stat_buf) == -1) {
-            handle_error((int)HttpResponseCode::SEE_OTHER, "Internal server error");
+            response_error((int)HttpResponseCode::SEE_OTHER, "Internal server error");
             close(fd);
             break;;
         }
@@ -456,18 +454,17 @@ void lgx::net::http::send_file(const std::string &file_name) {
             close(fd);
             break;
         }
-
         // write header
         void* file_mmap_ptr = mmap(nullptr, stat_buf.st_size, PROT_READ, MAP_PRIVATE, fd, 0);
 
         if(!file_mmap_ptr) {
             close(fd);
-            handle_error((int)HttpResponseCode::SEE_OTHER, "Internal server error");
+            response_error((int)HttpResponseCode::SEE_OTHER, "Internal server error");
             break;
         }
         // Sended it is less than 100 MB
         if(stat_buf.st_size < (1024 * 1024 * 100)) {
-            lgx::util::vessel *out_buffer = new lgx::util::vessel();
+            std::shared_ptr<lgx::util::vessel> out_buffer = std::shared_ptr<lgx::util::vessel>(new lgx::util::vessel());
             // get suffix name
             *out_buffer << "HTTP/1.1 200 OK\r\n";
             if (map_header_info_.find("connection") != map_header_info_.end() &&
@@ -490,15 +487,6 @@ void lgx::net::http::send_file(const std::string &file_name) {
         close(fd);
     } while(false);
 }
-bool lgx::net::http::check_file_path(const std::string &file_name) {
-    char last_ch = 0;
-    for (auto ch : file_name) {
-        if(ch == '.')
-            if(last_ch == '.')
-                return false;
-    }
-    return true;
-}
 
 void lgx::net::http::handle_not_found() {
     std::string file_name = lgx::data::root_path + "/" + lgx::data::web_404_page;
@@ -508,34 +496,31 @@ void lgx::net::http::handle_not_found() {
         }
         int fd = open(file_name.c_str(), O_RDONLY);
         if(fd == -1) {
-            handle_error((int)HttpResponseCode::NOT_FOUND, "LGX Not Found!");
+            std::cout << "Open not found file [" << file_name << "] failed!\n";
+            response_error((int)HttpResponseCode::NOT_FOUND, "LGX Not Found!");
             break;
         }
         struct stat stat_buf;
         if(fstat(fd, &stat_buf) == -1) {
-            handle_error((int)HttpResponseCode::SEE_OTHER, "Internal server error");
-            logger() << log_dbg("Internal server error");
+            response_error((int)HttpResponseCode::SEE_OTHER, "Internal server error");
             close(fd);
             break;
         }
         // Check this file if as dir, if do not this, when mmap to read data, server will crashed!
         if(S_ISDIR(stat_buf.st_mode)) {
-            handle_error((int)HttpResponseCode::SEE_OTHER, "Error: dir can't get");
+            response_error((int)HttpResponseCode::SEE_OTHER, "Error: dir can't get");
             close(fd);
             break;
         }
-
-        // write header
-        void *file_mmap_ptr = mmap(nullptr, stat_buf.st_size, PROT_READ, MAP_PRIVATE, fd, 0);
+        void* file_mmap_ptr = mmap(nullptr, stat_buf.st_size, PROT_READ, MAP_PRIVATE, fd, 0);
 
         if(!file_mmap_ptr) {
             close(fd);
-            handle_error((int)HttpResponseCode::SEE_OTHER, "Internal server error");
-            logger() << log_dbg("Internal server error");
+            response_error((int)HttpResponseCode::SEE_OTHER, "Internal server error");
             break;
         }
 
-        lgx::util::vessel *out_buffer = new lgx::util::vessel();
+        std::shared_ptr<lgx::util::vessel> out_buffer = std::shared_ptr<lgx::util::vessel>(new lgx::util::vessel());
         // get suffix name
         *out_buffer << "HTTP/1.1 404 NOT FOUND\r\n";
         if (map_header_info_.find("connection") != map_header_info_.end() &&
@@ -552,20 +537,19 @@ void lgx::net::http::handle_not_found() {
         *out_buffer << "\r\n";
         out_buffer->append(file_mmap_ptr, stat_buf.st_size);
         out_buffer_queue_.push(out_buffer);
-        out_buffer_queue_.push(out_buffer);
         handle_write();
         munmap(file_mmap_ptr, stat_buf.st_size);
         close(fd);
     } while(false);
 }
 
-// 触发事件后，重新更新事件
+// 处理连接
 void lgx::net::http::handle_reset() {
     int ms_timeout = 0;
     __uint32_t &event = sp_channel_->get_event();
-    unbind_timer(); //解除计时器, 避免有两个计时器监视,重新绑定一个新的计时器
+    unbind_timer(); //解除计时器, 避免有两个计时器监视
+
     if(!recv_error_ && http_connection_state_ == HttpConnectionState::CONNECTED) {
-        // 未出现错误，重新更新事件
         if(event != 0) {
             if(keep_alive_)
                 ms_timeout = DEFAULT_KEEP_ALIVE_TIME;
@@ -583,22 +567,18 @@ void lgx::net::http::handle_reset() {
             event |= (EPOLLIN | EPOLLET);
             ms_timeout = DEFAULT_KEEP_ALIVE_TIME >> 2;
         }
-        eventloop_->update_epoll(sp_channel_, ms_timeout); // 更新事件
+        eventloop_->update_epoll(sp_channel_, ms_timeout);
     } else if (!recv_error_ && http_connection_state_ == HttpConnectionState::DISCONNECTING
                && (event & EPOLLOUT)) {
         event = (EPOLLOUT | EPOLLET);
     } else {
-        // 出现错误，回调handle_close
-        wait_event_count_ ++;
         eventloop_->run_in_loop(std::bind(&http::handle_close, shared_from_this()));
     }
 }
 
 void lgx::net::http::push_data(const std::string &data) {
-    lgx::thread::mutex_lock_guard guard(mutex_lock_);
     // 存在数据正在写入
-    lgx::util::vessel *out_buffer = new lgx::util::vessel();
-
+    std::shared_ptr<lgx::util::vessel> out_buffer = std::shared_ptr<lgx::util::vessel>(new lgx::util::vessel());
     std::string header_buffer;
     header_buffer += "HTTP/1.1 " + std::to_string(static_cast<int>(HttpResponseCode::MOVED_PERMANENTLY)) + "\r\n";
     header_buffer += "Access-Control-Allow-Origin: *\r\n";
@@ -610,15 +590,17 @@ void lgx::net::http::push_data(const std::string &data) {
     *out_buffer << header_buffer;
     *out_buffer << data;
     out_buffer_queue_.push(out_buffer);
-    wait_event_count_ --;
+    wait_event_count_ ++;
 #ifdef DEBUG
     dbg_log("push_data: " + data);
 #endif
     // 采用目标http的线程进行更新epoll事件
     eventloop_->run_in_loop(std::bind(&http::handle_push_data_reset, shared_from_this()));
 }
+
 // 采用单一线程进行更新epoll事件，多线程易出现条件竞争，导致内存错误
 void lgx::net::http::handle_push_data_reset() {
+    wait_event_count_ --;
     int ms_timeout = 0;
     __uint32_t &event = sp_channel_->get_event();
     unbind_timer(); //解除计时器, 避免有两个计时器监视,重新绑定一个新的计时器
@@ -631,8 +613,11 @@ void lgx::net::http::handle_push_data_reset() {
     eventloop_->update_epoll(sp_channel_, ms_timeout); // 更新事件
 }
 
-void lgx::net::http::handle_error(int error_number, std::string message) {
-    lgx::util::vessel *out_buffer = new lgx::util::vessel();
+void lgx::net::http::response_error(int error_number, std::string message) {
+    std::shared_ptr<lgx::util::vessel> out_buffer = std::shared_ptr<lgx::util::vessel>(new lgx::util::vessel());
+#ifdef DEBUG
+    d_cout << "start call handle_error\n";
+#endif
     message = " " + message;
     std::string header_buffer, body_buffer;
     body_buffer += "<html><title>request error</title>";
@@ -655,6 +640,9 @@ void lgx::net::http::handle_error(int error_number, std::string message) {
     *out_buffer << body_buffer;
     out_buffer_queue_.push(out_buffer);
     handle_write();
+#ifdef DEBUG
+    d_cout << "finished call handle_error\n";
+#endif
 }
 
 void lgx::net::http::str_lower(std::string &str) {
@@ -664,17 +652,26 @@ void lgx::net::http::str_lower(std::string &str) {
 }
 
 void lgx::net::http::redirect(const std::string &url) {
-    lgx::util::vessel *out_buffer = new lgx::util::vessel();
+    std::shared_ptr<lgx::util::vessel> out_buffer = std::shared_ptr<lgx::util::vessel>(new lgx::util::vessel());
     std::string header_buffer;
     header_buffer += "HTTP/1.1 " + std::to_string(static_cast<int>(HttpResponseCode::MOVED_PERMANENTLY)) + "\r\n";
     header_buffer += "Access-Control-Allow-Origin: *\r\n";
     header_buffer += "Server: " + std::string(SERVER_NAME) + "\r\n";
     header_buffer += "Connection: Keep-Alive\r\n";
-    header_buffer += "Cookie: session=" + session_ + "\r\n";
     header_buffer += "Location: " + url + "\r\n";
     header_buffer += "Content-Length: 0\r\n";
     header_buffer += "\r\n";
     *out_buffer << header_buffer;
     out_buffer_queue_.push(out_buffer);
     handle_write();
+}
+
+bool lgx::net::http::path_invalid(const std::string &file_name) {
+    char last_ch = 0;
+    for (auto ch : file_name) {
+        if(ch == '.')
+            if(last_ch == '.')
+                return true;
+    }
+    return false;
 }

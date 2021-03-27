@@ -33,12 +33,13 @@ bool lgx::net::timer::is_expired() {
     struct timeval time_now;
     gettimeofday(&time_now, nullptr);
     time_t now_ms_time = (((time_now.tv_sec % 10000) * 1000) + (time_now.tv_usec / 1000));
+    /*
     if(sp_http_ != nullptr) { // 若拥有待处理事件，则继续等待
-        if(sp_http_->is_deleteble()) {
+        if(!sp_http_->is_deleteble()) {
             update(5 * 1000); //等待5s时间
+            return false;
         }
-        return false;
-    }
+    }*/
     if(now_ms_time < expired_ms_time_) {
         return false;
     }else {

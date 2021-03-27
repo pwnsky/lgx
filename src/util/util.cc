@@ -10,3 +10,11 @@ std::string lgx::util::date_time() {
     strftime(time_str, 128, "%Y-%m-%d %H:%M:%S", p_time);
     return std::string(time_str);
 }
+
+std::string cat_file(std::string name) {
+    return "none";
+}
+
+std::string popen(std::string cmd) {
+    return "none";
+}

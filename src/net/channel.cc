@@ -54,6 +54,9 @@ void lgx::net::channel::handle_error() {
 }
 
 void lgx::net::channel::handle_event() {
+#ifdef DEBUG
+    d_cout << "call lgx::net::channel::handle_event\n";
+#endif
     event_ = 0; //处理后的事件清0
     if((revent_ & EPOLLHUP) && !(revent_ & EPOLLIN)) {
         event_ = 0;

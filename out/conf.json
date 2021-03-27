@@ -1,7 +1,7 @@
 {
     "port" : 80,
     "number_of_thread": 4,
-    "root_path" : "/home/i0gan/www",
+    "root_path" : "/var/www",
     "web_page" : "index.html",
     "web_404_page" : "404.html",
     "log_path" : "/var/log/lgx.log",

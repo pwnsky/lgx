@@ -1,3 +1,4 @@
+# server src headers
 HEADERS += \
     src/base.hh \
     src/util/json.hh \
@@ -21,11 +22,11 @@ HEADERS += \
     src/thread/noncopyable.hh \
     src/thread/thread.hh \
     src/work/work.hh \
-    src/work/push.hh \
+    src/work/chat.hh \
     src/util/url.hh \
     src/util/firewall.hh \
     src/util/md5.cc
-
+# server src sources
 SOURCES += \
     src/log/log.cc \
     src/log/log_thread.cc \
@@ -43,6 +44,16 @@ SOURCES += \
     src/start_up.cc \
     src/thread/thread.cc \
     src/work/work.cc \
-    src/work/push.cc \
+    src/work/chat.cc \
     src/util/firewall.cc \
     src/util/md5.cc
+
+
+# test src headers
+HEADERS += \
+
+
+# test src sources
+SOURCES += \
+    test_src/client.py
+    webbench.c

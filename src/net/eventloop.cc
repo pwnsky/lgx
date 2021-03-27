@@ -58,13 +58,18 @@ void lgx::net::eventloop::loop() {
     quit_ = false;
     std::vector<sp_channel> v_sp_event_channels;
     while(!quit_) {
-        //std::cout << "looping!\n";
+#ifdef DEBUG
+        d_cout << "event looping!\n";
+#endif
         v_sp_event_channels.clear();
         v_sp_event_channels = sp_epoll_->get_all_event_channels(); // get all unhandle events
         event_handling_ = true;
         for (auto &sp_channel : v_sp_event_channels) {
             if(sp_channel)
                 sp_channel->handle_event(); // handle event
+#ifdef DEBUG
+        d_cout << "call handle_event\n";
+#endif
         }
         event_handling_  = false;
         run_pending_callback_func();   // run pending callback function

@@ -10,12 +10,14 @@
 #include <sys/stat.h>
 #include <unordered_map>
 #include <pthread.h>
+#include <iterator>
 
 #include "../base.hh"
 #include "../log/log.hh"
 #include "../util/url.hh"
 #include "../util/vessel.hh"
 #include "../net/http.hh"
+#include "chat.hh"
 
 using logger = lgx::log::logger;
 
@@ -46,7 +48,6 @@ public:
     void set_send_data_handler(lgx::util::callback2 send_data_handler);
     void set_error_handler(lgx::util::callback2 error_handler);
     void set_send_file_handler(lgx::util::callback1 send_file_handler);
-    void set_fd(int fd) ;
     void run();
     void handle_get();
     void handle_post();
@@ -56,6 +57,7 @@ private:
     const std::map<std::string, std::string> &map_header_info_;
     const std::map<std::string, std::string> &map_client_info_;
     lgx::util::vessel &content_;
+    std::string session_;
     size_t &error_times_;
     lgx::util::callback1 send_file_handler_;
     lgx::util::callback2 send_data_handler_;
@@ -64,18 +66,26 @@ private:
     std::map<std::string, std::string> map_url_value_info_;
     std::string request_;
     std::string platform_;
-
-    int fd_;
     void send_data(const std::string &suffix, const std::string &content);
     void send_json(lgx::util::json &json_obj);
+    std::string json_to_string(json &json_obj);
     void send_file(std::string file_name);
     bool parse_url();
     void handle_not_found();
     void response(ResponseCode error_code);
     bool is_dir(const std::string &path);
+
     std::string get_date_time();
 
+    void chat_register();
+    void chat_login();
+    void chat_create_group();
+    void chat_join_group();
+    void chat_get_group_all_member_info();
+    void chat_msg_to_group();
+    void chat_msg_to_user();
+
     /*logic*/
-    void client_get_datetime();
-    void client_get_info();
+    void client_get_server_datetime();
+    void client_get_server_info();
 };

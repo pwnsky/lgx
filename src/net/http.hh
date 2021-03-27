@@ -113,27 +113,30 @@ public:
     void handle_close();
     void new_evnet();
     void set_client_info(const std::string &ip, const std::string &port) {
-        map_client_info_["client_ip"] = ip;
-        map_client_info_["client_port"] = port;
-        map_client_info_["session"] = session_;
-        client_ip_ = ip;
-        client_port_ = port;
-    }
-    std::string get_session() { return session_; }
-    void push_data(const std::string &data); // 数据推送
-    int is_deleteble() {
-        if(wait_event_count_ > 0)
-            return false;
-        return true;
-    }
+            map_client_info_["client_ip"] = ip;
+            map_client_info_["client_port"] = port;
+            map_client_info_["session"] = session_;
+            client_ip_ = ip;
+            client_port_ = port;
+        }
+        std::string get_session() { return session_; }
+        void push_data(const std::string &data); // 数据推送
+        int is_deleteble() {
+            if(wait_event_count_ > 0)
+                return false;
+            return true;
+        }
+    void response_error(int error_number, std::string message);
 private:
     int fd_;
+    std::string session_;
     eventloop *eventloop_;
     sp_channel sp_channel_;
     std::string header_data_;
     lgx::util::vessel in_buffer_;
-    lgx::util::vessel *out_buffer_;
-    std::queue<lgx::util::vessel *> out_buffer_queue_; //缓冲区输出队列
+    std::shared_ptr<lgx::util::vessel> out_buffer_ = nullptr;
+    std::string in_content_buffer_;
+    std::queue<std::shared_ptr<lgx::util::vessel>> out_buffer_queue_;
     bool recv_error_;
     HttpConnectionState http_connection_state_;
     HttpRecvState http_process_state_;
@@ -145,25 +148,23 @@ private:
     std::weak_ptr<timer> wp_timer_; // 采用timer来管理http对象
     std::string client_ip_;
     std::string client_port_;
+
     std::map<std::string, std::string> map_client_info_;
     size_t error_times_ = 0; // for avoid attack
     size_t not_found_times_ = 0;
-    lgx::thread::mutex_lock mutex_lock_;
-    std::string session_;
+
     void handle_read();
     void handle_write();
     void handle_reset();
     void handle_push_data_reset();
-
-    void handle_error(int error_number, std::string message);
     void handle_not_found();
     HttpParseHeaderResult parse_header();
+
     void handle_work();
     std::string get_suffix(std::string file_name);
     void send_data(const std::string &type,const std::string &content);
     void send_file(const std::string &file_name);
-    bool check_file_path(const std::string &file_name);
     void str_lower(std::string &str);
     void redirect(const std::string &url);
-
+    bool path_invalid(const std::string &file_name);
 };
