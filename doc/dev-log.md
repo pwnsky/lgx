@@ -29,3 +29,5 @@
 2021-01-01: Remove not important moudle 
 
 2021-03-26: Add data push mechanism
+
+2021-03-27: Add simple chat function to  lgx

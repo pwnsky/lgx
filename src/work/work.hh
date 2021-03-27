@@ -43,6 +43,7 @@ class lgx::work::work {
 public:
     explicit work(const std::map<std::string, std::string> &map_header_info,
                   const std::map<std::string, std::string> &map_client_info_,
+                  std::string &uid,
                   lgx::util::vessel &content, size_t &error_times); // uid for deal with offline
     ~work() {};
     void set_send_data_handler(lgx::util::callback2 send_data_handler);
@@ -58,6 +59,7 @@ private:
     const std::map<std::string, std::string> &map_client_info_;
     lgx::util::vessel &content_;
     std::string session_;
+    std::string &uid_;
     size_t &error_times_;
     lgx::util::callback1 send_file_handler_;
     lgx::util::callback2 send_data_handler_;
@@ -80,8 +82,12 @@ private:
     void chat_register();
     void chat_login();
     void chat_create_group();
+    void chat_delete_group();
     void chat_join_group();
+    void chat_get_all_group_info();
+    void chat_get_all_user_info();
     void chat_get_group_all_member_info();
+
     void chat_msg_to_group();
     void chat_msg_to_user();
 

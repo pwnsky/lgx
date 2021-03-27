@@ -8,6 +8,10 @@ void lgx::chat::request::init() {
     request::umap_type_["login"] = lgx::chat::request_type::login;
     request::umap_type_["send_msg_to_user"] = lgx::chat::request_type::send_msg_to_user;
     request::umap_type_["send_msg_to_group"] = lgx::chat::request_type::send_msg_to_group;
+    request::umap_type_["get_all_group_info"] = lgx::chat::request_type::get_all_group_info;
+    request::umap_type_["get_all_user_info"] = lgx::chat::request_type::get_all_user_info;
+    request::umap_type_["create_group"] = lgx::chat::request_type::create_group;
+
 }
 
 lgx::chat::request_type lgx::chat::request::to_enum(std::string request) {

@@ -23,8 +23,13 @@ enum class request_type {
     login,
     keep_connect,
     get_user_info,
+    get_all_group_info,
+    get_all_user_info,
+    get_server_datatime,
+    get_server_info,
     send_msg_to_user,
     send_msg_to_group,
+    create_group,
 };
 
 

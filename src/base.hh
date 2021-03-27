@@ -90,6 +90,11 @@ std::string date_time();
 class url;
 class firewall;
 class md5;
+namespace mysql {
+class sql;
+class query;
+class exception;
+}
 }
 // namespace util end
 
@@ -149,12 +154,11 @@ extern std::vector<std::string> forbid_ips;
 extern lgx::util::firewall *firewall;
 extern std::string config_path;
 extern std::string os_info;
-//namespace mysql {
-//    extern lgx::db::mysql::sql *sql;
-//    extern lgx::thread::mutex_lock lock;
-//}
+namespace mysql {
+    extern lgx::util::mysql::sql *sql;
+    extern lgx::thread::mutex_lock lock;
+}
 extern std::map<std::string, std::weak_ptr<lgx::net::http>> sessions;
-
 extern std::unordered_map<std::string, lgx::chat::user> users;
 extern std::unordered_map<std::string, lgx::chat::group> groups;
 

@@ -70,6 +70,12 @@ lgx::net::http::~http() {
     }  catch (std::out_of_range) {
         std::cout << "~http out of orange!";
     }
+    if(uid_ != "none") {
+       auto iter = lgx::data::users.find(uid_);
+       if(iter!= lgx::data::users.end()) {
+           iter->second.client_session = "none";
+       }
+    }
 }
 
 void lgx::net::http::reset() {
@@ -344,7 +350,7 @@ lgx::net::HttpParseHeaderResult lgx::net::http::parse_header() {
 }
 
 void lgx::net::http::handle_work() {
-    lgx::work::work w(map_header_info_, map_client_info_, in_buffer_, error_times_);
+    lgx::work::work w(map_header_info_, map_client_info_, uid_, in_buffer_, error_times_);
     w.set_send_data_handler(std::bind(&http::send_data, this, std::placeholders::_1, std::placeholders::_2));
     w.set_send_file_handler(std::bind(&http::send_file, this, std::placeholders::_1));
     w.run();

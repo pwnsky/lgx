@@ -5,7 +5,8 @@
 GCC     := gcc
 CC      := g++ 
 CFLAGS  := -g -O3 -std=c++14
-LDFLAGS := -lpthread
+LDFLAGS := -lpthread -lmysqlclient
+#LDFLAGS += -lmariadb
 RM      := rm -rf 
 CP      := cp -r
 MKDIR   := mkdir -p
@@ -23,7 +24,8 @@ LOG_PATH    :=  ./src/log
 THIRD_PATH  :=  ./src/third
 UTIL_PATH   :=  ./src/util
 SECURITY_PATH := ./src/security
-MAIN_PATH     :=  ./src
+MYSQL_PATH  := ./src/util/mysql
+MAIN_PATH   :=  ./src
 
 #---------------------OBJ-------------------------
 OBJS :=
@@ -61,6 +63,11 @@ OBJS += $(LOG_OBJ)
 SECURITY_SRC := $(wildcard $(SECURITY_PATH)/*.cc)  
 SECURITY_OBJ := $(patsubst %.cc, %.o, $(SECURITY_SRC)) 
 OBJS += $(SECURITY_OBJ)
+
+# util mysql src
+MYSQL_SRC := $(wildcard $(MYSQL_PATH)/*.cc)  
+MYSQL_OBJ := $(patsubst %.cc, %.o, $(MYSQL_SRC)) 
+OBJS += $(MYSQL_OBJ)
 
 # complie
 lgx:$(OBJS)

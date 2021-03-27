@@ -25,7 +25,9 @@ HEADERS += \
     src/work/chat.hh \
     src/util/url.hh \
     src/util/firewall.hh \
-    src/util/md5.cc
+    src/util/md5.hh \
+    src/util/mysql/sql.hh \
+    src/util/mysql/query.hh
 # server src sources
 SOURCES += \
     src/log/log.cc \
@@ -46,7 +48,9 @@ SOURCES += \
     src/work/work.cc \
     src/work/chat.cc \
     src/util/firewall.cc \
-    src/util/md5.cc
+    src/util/md5.cc \
+    src/util/mysql/sql.cc \
+    src/util/mysql/query.cc
 
 
 # test src headers
@@ -55,5 +59,5 @@ HEADERS += \
 
 # test src sources
 SOURCES += \
-    test_src/client.py
+    test_src/lgx_chat.py \
     webbench.c

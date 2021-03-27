@@ -130,6 +130,7 @@ public:
 private:
     int fd_;
     std::string session_;
+    std::string uid_ =  "none";
     eventloop *eventloop_;
     sp_channel sp_channel_;
     std::string header_data_;
