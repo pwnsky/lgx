@@ -2,7 +2,7 @@
 import socket
 import _thread
 import json
-
+DEBUG = 0
 uid = ''
 tid = ''
 
@@ -39,7 +39,10 @@ color = Colored()
 
 
 sk = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
-sk.connect(('127.0.0.1', 80))
+if(DEBUG == 1):
+    sk.connect(('127.0.0.1', 80))
+else:
+    sk.connect(('i0gan.cn', 8000))
 
 
 
@@ -173,11 +176,13 @@ def chat_with_user():
     _thread.start_new_thread(recv_thread, ())
     while True:
         name = input(color.yellow("input name to chat: "))
-        uid = users[name][0]
-        if(uid != None):
-            break
-        print('No this user!')
-    print('chating uid ' + uid)
+        try:
+            uid = users[name][0]
+        except:
+            print('No this user!')
+            continue
+        break
+    print('chating user: ' + name + ' \t network: ' + users[name][1])
     while True:
         s_msg = input()
         send_user_chat(uid , s_msg)
