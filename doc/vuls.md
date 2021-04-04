@@ -2,7 +2,7 @@
 
 
 
-### LGX-CVE-2020-1003 
+### VULN-2020-1003 
 
 #### Intro
 
@@ -34,7 +34,7 @@ Synchronization log module
 
 
 
-## LGX-CVE-2020-1017
+## VULN-2020-1017
 
 ### Intro
 
@@ -81,7 +81,7 @@ This attack just take a one minute then make the lgx server break down.
 
 
 
-## LGX-CVE-2020-1125
+## VULN-2020-1125
 
 ### Intro
 
@@ -128,4 +128,43 @@ bool lgx::net::http::check_file_path(const std::string &file_name) {
 ```
 
 
+## VULN-2021-04-04
 
+### Intro
+
+If Content-Length value is not integer in http header, that server will crashed!
+
+poc:
+
+```
+POST /?request=login? HTTP/1.1
+Connection: Keep-Alive
+Content-Length: .
+```
+
+
+
+The vulnerable code in http.cc: 185
+
+```
+if(map_header_info_.find("content-length") != map_header_info_.end()) {
+	content_length_ = std::stoi(map_header_info_["content-length"]);
+ }
+```
+
+
+
+Patch
+
+```c++
+
+if(map_header_info_.find("content-length") != map_header_info_.end()) {
+  	try {
+       content_length_ = std::stoi(map_header_info_["content-length"]);
+   	} catch (std::invalid_argument) {
+  		logger() << log_dbg("content-length is invalid");
+   		recv_error_ = true;
+    	response_error((int)HttpResponseCode::BAD_REQUEST, "Bad Request");
+    }
+}
+```

@@ -159,6 +159,7 @@ private:
     void handle_reset();
     void handle_push_data_reset();
     void handle_not_found();
+    void handle_keep_alive();
     HttpParseHeaderResult parse_header();
 
     void handle_work();

@@ -30,6 +30,7 @@ enum class request_type {
     send_msg_to_user,
     send_msg_to_group,
     create_group,
+    join_group,
 };
 
 

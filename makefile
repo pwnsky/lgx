@@ -15,6 +15,7 @@ INSTALL_PATH := /usr/bin
 CONFIG_PATH  := /etc/lgx
 WWW_PATH     := /var/www
 CONFIG_FILE_PATH := $(CONFIG_PATH)/conf.json
+#DEBUGFLAGS := -DDEBUG
 
 # src path
 NET_PATH    :=  ./src/net
@@ -77,7 +78,7 @@ static:$(OBJS)
 	$(CC) $^ -o $(BUILD_PATH)/$@ $(LDFLAGS) $(CFLAGS)  --static
 
 $(OBJS):%.o:%.cc
-	$(CC) -c $^ -o $@ -DDEFAULT_CONFIG_FILE=\"$(CONFIG_FILE_PATH)\"
+	$(CC) -c $^ -o $@ -DDEFAULT_CONFIG_FILE=\"$(CONFIG_FILE_PATH)\" $(DEBUGFLAGS)
 
 print:
 	@echo $(COBJS)

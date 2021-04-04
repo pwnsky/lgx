@@ -11,7 +11,7 @@ void lgx::chat::request::init() {
     request::umap_type_["get_all_group_info"] = lgx::chat::request_type::get_all_group_info;
     request::umap_type_["get_all_user_info"] = lgx::chat::request_type::get_all_user_info;
     request::umap_type_["create_group"] = lgx::chat::request_type::create_group;
-
+    request::umap_type_["join_group"] = lgx::chat::request_type::join_group;
 }
 
 lgx::chat::request_type lgx::chat::request::to_enum(std::string request) {

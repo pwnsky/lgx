@@ -2,7 +2,8 @@
 import socket
 import _thread
 import json
-DEBUG = 0
+from time import *
+DEBUG = 1
 uid = ''
 tid = ''
 
@@ -44,18 +45,23 @@ if(DEBUG == 1):
 else:
     sk.connect(('i0gan.cn', 8000))
 
-
-
 def post(args, d):
     p =  b'POST /' + b'?' + args + b' HTTP/1.1\r\n'
     p += b'Content-Length: ' + str(len(d)).encode() + b'\r\n'
     p += b'Connection: Keep-Alive\r\n'
     p += b'\r\n'
     p += d
+    #print(b"send: " + p)
     sk.send(p)
 
 def get(args):
     p =  b'GET /' + b'?' + args + b' HTTP/1.1\r\n'
+    p += b'Connection: Keep-Alive\r\n'
+    p += b'\r\n'
+    sk.send(p)
+
+def keep(): # keep connect
+    p =  b'KEEP / HTTP/1.1\r\n'
     p += b'Connection: Keep-Alive\r\n'
     p += b'\r\n'
     sk.send(p)
@@ -88,6 +94,10 @@ def recv_thread():
             print("recv msg: " + color.green(msg))
         elif(request == 'get_all_user_info'):
             show_all_user(recv['content'])
+        elif(request == 'recv_group_msg'):
+            msg = recv['content']['msg']
+            uid = recv['content']['uid']
+            print("recv group msg: " + color.yellow(uid) +" say:\n" + color.green(msg))
         #print(color.yellow(recv))
 def login():
     global uid
@@ -98,32 +108,49 @@ def login():
     data = json.dumps(send);
     post(args.encode(), data.encode())
     s = get_recv()
-    #print(s)
     recv = json.loads(s);
     if(recv['code'] != 0):
-        print(color.red('login failed!'))
+        print(color.red('Login failed!'))
         return False
-    print(color.green('login ok!'))
+    print(color.green('Login ok!'))
     uid = recv['content']['uid']
-    print('your uid: ' + color.red(uid))
+    print('Your uid: ' + color.red(uid))
     return True
+
 
 def group_create(name):
     args = 'request=create_group'
     send = {'content': { "name" : name, "uid": uid}}
     data = json.dumps(send);
     post(args.encode(), data.encode())
+    s = get_recv()
+    recv = json.loads(s);
+    if(recv['code'] != 0):
+        if(recv['code'] == 11):
+            print(color.red('Create group failed! This group name existed!'))
+        else:
+            print(color.red('Create group failed!'))
+        return False
+    print(color.green('Create OK!'))
+    gid = recv['content']['gid']
+    print('Your group gid: ' + color.red(gid))
 
 def group_chat():
     a = 0
 
-def join_group():
-    gid = 'none'
+def join_group(gid):
+    print('gid: ' + gid)
     args = 'request=join_group'
-    send = {'content': { {"uid": uid}, {"gid", gid} }}
+    send = {'content': { "uid" : uid, "gid": gid}}
     data = json.dumps(send)
+    print('send: ' + str(data))
     post(args.encode(), data.encode())
-
+    s = get_recv()
+    recv = json.loads(s);
+    if(recv['code'] != 0):
+        if(recv['code'] == 11):
+            print(color.red('You alredy in this group!'))
+    print(color.green('Joined this group'))
 
 def send_user_chat(tid, msg):
     args = 'request=send_msg_to_user'
@@ -132,37 +159,58 @@ def send_user_chat(tid, msg):
     #print('send:\n' + data)
     post(args.encode(), data.encode())
 
+def send_group_chat(tid, msg):
+    args = 'request=send_msg_to_group'
+    send = {'content': { "uid" : uid, "gid": tid, "msg" : msg}}
+    data = json.dumps(send);
+    #print('send:\n' + data)
+    post(args.encode(), data.encode())
+
 def clear_cmd():
    print(color.green('\x1b[H\x1b[2J'))
+
 def munu():
     clear_cmd()
     print(color.blue('\t lgx simple chat client\n'))
     print(color.blue('\t 1. Chat with user\n'))
     print(color.blue('\t 2. Chat with group\n'))
+    print(color.blue('\t 3. Create a group\n'))
+    print(color.blue('\t 4. Exit\n'))
 
 def get_all_user_info():
-    # login
     args = 'request=get_all_user_info'
     get(args.encode())
     s = get_recv()
-    #print(s)
     recv = json.loads(s);
     if(recv['code'] != 0):
         print(color.red('get_all_user_info failed!'))
         return False
-
     show_all_user(recv['content'])
     return True
 
 users = {}
+groups = {}
 def select():
-    s = input()
-    if(s == '1'):
-        login()
-        get_all_user_info()
-        chat_with_user()
-    elif(s == '2'):
-        login()
+    while True:
+        munu()
+        s = input()
+        if(s == '1'):
+            get_all_user_info()
+            chat_with_user()
+            input()
+        elif(s == '2'):
+            get_all_group_info()
+            chat_with_group()
+            input()
+        elif(s == '3'):
+            name = input('Input group name:')
+            group_create(name)
+            input()
+        elif(s == '4'):
+            break
+        else:
+            print('invalid command')
+            input()
 
 def show_all_user(ua):
     global users
@@ -171,6 +219,28 @@ def show_all_user(ua):
         print( color.green(' *' + '%02d' % i + ' name: ' + c['name'] + " network: " + c['network']))
         users[c['name']] = [c['uid'], c['network']]
         i += 1
+
+def show_all_group(ga):
+    if(ga == None):
+        return
+    global groups
+    i = 1
+    for c in ga:
+        print( color.green(' *' + '%02d' % i + 'group name: ' + c['name'] + ' members: ' + str(c['size'])))
+        groups[c['name']] = [c['gid'], c['size']]
+        i += 1
+
+def get_all_group_info():
+    args = 'request=get_all_group_info'
+    get(args.encode())
+    s = get_recv()
+    #print(s)
+    recv = json.loads(s);
+    if(recv['code'] != 0):
+        print(color.red('get_all_group_info failed!'))
+        return False
+    show_all_group(recv['content'])
+    return True
 
 def chat_with_user():
     _thread.start_new_thread(recv_thread, ())
@@ -187,9 +257,24 @@ def chat_with_user():
         s_msg = input()
         send_user_chat(uid , s_msg)
 
-munu()
-select()
 
+def chat_with_group():
+    _thread.start_new_thread(recv_thread, ())
+    while True:
+        name = input(color.yellow("Input group name to chat: "))
+        try:
+            gid = groups[name][0]
+        except:
+            print('No this group!')
+            continue
+        break
+    print('Chating group: ' + name + ' \t members: ' + str(groups[name][1]))
+    join_group(gid)
+    while True:
+        s_msg = input()
+        send_group_chat(gid , s_msg)
 
-
-
+if(login()):
+    select()
+else:
+    print('failed!')

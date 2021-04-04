@@ -178,12 +178,18 @@ void lgx::net::http::handle_read() {
                 break;
             }
             // Judget if have content data
-            //std::cout << "method: " << map_header_info_["method"] << '\n';
+            std::cout << "method: " << map_header_info_["method"] << '\n';
             http_process_state_ = HttpRecvState::WORK;
             if(map_header_info_["method"] == "post") {
                 content_length_ = 0;
                 if(map_header_info_.find("content-length") != map_header_info_.end()) {
-                    content_length_ = std::stoi(map_header_info_["content-length"]);
+                    try {
+                        content_length_ = std::stoi(map_header_info_["content-length"]);
+                    } catch (std::invalid_argument) {
+                        logger() << log_dbg("content-length is invalid");
+                        recv_error_ = true;
+                        response_error((int)HttpResponseCode::BAD_REQUEST, "Bad Request");
+                    }
                 } else {
                     logger() << log_dbg("not found contnt-length");
                     recv_error_ = true;
@@ -235,6 +241,9 @@ void lgx::net::http::handle_read() {
 }
 
 lgx::net::HttpParseHeaderResult lgx::net::http::parse_header() {
+#ifdef DEBUG
+    d_cout << "call lgx::net::http::parse_header()\n";
+#endif
     lgx::net::HttpParseHeaderResult  result = HttpParseHeaderResult::SUCCESS;
     std::string header_left;
     int first_line_read_pos = 0;
@@ -282,11 +291,16 @@ lgx::net::HttpParseHeaderResult lgx::net::http::parse_header() {
                 first_line_read_pos = http_method_pos;
                 map_header_info_["method"] = "delete";
                 break;
+            } else if((http_method_pos = header_line_1.find("KEEP")) >= 0){
+                first_line_read_pos = http_method_pos;
+                map_header_info_["method"] = "keep";
+                break;
             } else {
                 map_header_info_["method"] = "unknown";
                 break;
             }
         } while(false);
+
 
         if(first_line_read_pos < 0) {
             result = HttpParseHeaderResult::ERROR;
@@ -294,7 +308,10 @@ lgx::net::HttpParseHeaderResult lgx::net::http::parse_header() {
         }
 
         int http_url_start_pos = header_line_1.find('/');
-        if(http_url_start_pos < 0) break;
+        if(http_url_start_pos < 0) {
+            result = HttpParseHeaderResult::ERROR;
+            break;
+        }
         // sub str
         header_line_1 = header_line_1.substr(http_url_start_pos);
 
@@ -316,6 +333,7 @@ lgx::net::HttpParseHeaderResult lgx::net::http::parse_header() {
 
         map_header_info_["version"]  = header_line_1.substr(http_version_pos + 1);
     }  while(false);
+
     // chceck is error
     if (result == HttpParseHeaderResult::ERROR) {
         map_header_info_.clear();
@@ -350,6 +368,13 @@ lgx::net::HttpParseHeaderResult lgx::net::http::parse_header() {
 }
 
 void lgx::net::http::handle_work() {
+#ifdef DEBUG
+    d_cout << "call lgx::net::http::handle_work()\n";
+#endif
+    if(map_header_info_["method"] == "keep") { // just to keep connect
+        //send_data(".text", "keep");
+        return;
+    }
     lgx::work::work w(map_header_info_, map_client_info_, uid_, in_buffer_, error_times_);
     w.set_send_data_handler(std::bind(&http::send_data, this, std::placeholders::_1, std::placeholders::_2));
     w.set_send_file_handler(std::bind(&http::send_file, this, std::placeholders::_1));

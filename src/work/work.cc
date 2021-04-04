@@ -75,7 +75,6 @@ void lgx::work::work::handle_get() {
         return;
     }
 
-
     bool dir = is_dir(path);
     do {
         if(request_ == "none") {
@@ -126,8 +125,14 @@ void lgx::work::work::handle_post() {
     case lgx::chat::request_type::send_msg_to_user: {
         chat_msg_to_user();
     } break;
+    case lgx::chat::request_type::send_msg_to_group: {
+        chat_msg_to_group();
+    } break;
     case lgx::chat::request_type::create_group: {
         chat_create_group();
+    } break;
+    case lgx::chat::request_type::join_group: {
+        chat_join_group();
     } break;
     default: {
         response(ResponseCode::NO_ACCESS);
@@ -312,6 +317,7 @@ void lgx::work::work::chat_login() {
 }
 
 void lgx::work::work::chat_create_group() {
+    std::cout << "create_group\n";
     json recv_json_obj;
     try {
         recv_json_obj = json::parse(content_.to_string());
@@ -323,23 +329,39 @@ void lgx::work::work::chat_create_group() {
     std::string group_name;
     std::string holder_uid;
     try {
-        holder_uid = recv_json_obj["content"]["holder_uid"];
-        group_name = recv_json_obj["content"]["group_name"];
+        holder_uid = recv_json_obj["content"]["uid"];
+        group_name = recv_json_obj["content"]["name"];
     }  catch (json::type_error) {
         response(ResponseCode::ERROR_JSON_CONTENT_TYPE);
+        return;
+    }
+    // Check is have this group
+    std::string gid = lgx::util::md5(group_name).to_lower_case_string();
+    auto iter = lgx::data::groups.find(gid);
+    if(iter != lgx::data::groups.end()) {
+        response(ResponseCode::EXIST);
         return;
     }
 
     // update info
     lgx::chat::group group;
     group.name = group_name;
-    group.gid = lgx::util::md5(group_name).to_lower_case_string();
+    group.gid = gid;
     group.holder_uid = holder_uid;
     group.member_uid_list.push_back(holder_uid);
     lgx::data::groups[group.gid] = group;
+    json json_obj = {
+        { "server", SERVER_NAME },
+        { "request", request_ },
+        { "code", ResponseCode::SUCCESS },
+        { "datetime" , get_date_time() },
+        { "content" , { {"gid" , gid } } }
+    };
+    send_json(json_obj);
 }
 
 void lgx::work::work::chat_join_group() {
+    std::cout << "lgx::work::work::chat_join_group\n";
     json recv_json_obj;
     try {
         recv_json_obj = json::parse(content_.to_string());
@@ -360,9 +382,17 @@ void lgx::work::work::chat_join_group() {
 
     auto group_iter= lgx::data::groups.find(gid);
     if(group_iter == lgx::data::groups.end()) {
+        response(ResponseCode::NOT_EXIST);
         return;
     }
+    for (auto m : group_iter->second.member_uid_list) {
+        if(m == uid) {
+            response(ResponseCode::EXIST);
+            return;
+        }
+    }
     group_iter->second.member_uid_list.push_back(uid);
+    response(ResponseCode::SUCCESS);
 }
 
 void lgx::work::work::chat_get_all_group_info() {
@@ -380,13 +410,16 @@ void lgx::work::work::chat_get_all_group_info() {
         { "content", {
           }}
     };
+
     for (auto &i : lgx::data::groups) {
         util::json g_json = {
             {"name", i.second.name },
-            {"gid", i.second.gid}
+            {"gid", i.second.gid},
+            {"size", i.second.member_uid_list.size()}
         };
         sj["content"].push_back(g_json);
     }
+    send_json(sj);
 }
 
 void lgx::work::work::chat_get_all_user_info() {
@@ -423,6 +456,7 @@ void lgx::work::work::chat_get_group_all_member_info() {
 }
 
 void lgx::work::work::chat_msg_to_group() {
+    std::cout << "lgx::work::work::chat_msg_to_group\n";
     json recv_json_obj;
     try {
         recv_json_obj = json::parse(content_.to_string());
@@ -445,6 +479,7 @@ void lgx::work::work::chat_msg_to_group() {
     // 查找group
     auto group_iter= lgx::data::groups.find(gid);
     if(group_iter == lgx::data::groups.end()) {
+        response(ResponseCode::NOT_EXIST);
         return;
     }
 
@@ -463,7 +498,6 @@ void lgx::work::work::chat_msg_to_group() {
           }}
     };
     std::string send_content = json_to_string(send_json);
-
     // 循环发送
     for(auto m_uid : group_iter->second.member_uid_list) {
         // 查找 user
@@ -476,7 +510,6 @@ void lgx::work::work::chat_msg_to_group() {
         if(session_iter == lgx::data::sessions.end()) {
             continue;
         }
-
         // 发送消息
         if(!session_iter->second.expired()) {
             lgx::net::sp_http sp = session_iter->second.lock();
