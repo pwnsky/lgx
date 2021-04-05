@@ -3,6 +3,7 @@ import socket
 import _thread
 import json
 from time import *
+import time
 DEBUG = 1
 uid = ''
 tid = ''
@@ -83,6 +84,12 @@ def get_recv():
         body += sk.recv(1)
     return body
 
+def show_recved_msg(name, msg):
+    show_str =  color.green(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())) + '\n'
+    show_str += color.yellow(name) + ' say: \n' 
+    show_str += color.fuchsia(msg) + '\n'
+    print(show_str)
+
 
 def recv_thread():
     while True:
@@ -91,14 +98,15 @@ def recv_thread():
         if(request == 'recv_user_msg'):
             msg = recv['content']['msg']
             uid = recv['content']['uid']
-            print("recv msg: " + color.green(msg))
+            show_recved_msg(uid, msg)
         elif(request == 'get_all_user_info'):
             show_all_user(recv['content'])
         elif(request == 'recv_group_msg'):
             msg = recv['content']['msg']
             uid = recv['content']['uid']
-            print("recv group msg: " + color.yellow(uid) +" say:\n" + color.green(msg))
+            show_recved_msg(uid, msg)
         #print(color.yellow(recv))
+
 def login():
     global uid
     # login
@@ -169,8 +177,9 @@ def send_group_chat(tid, msg):
 def clear_cmd():
    print(color.green('\x1b[H\x1b[2J'))
 
-def munu():
+def menu():
     clear_cmd()
+    logo()
     print(color.blue('\t lgx simple chat client\n'))
     print(color.blue('\t 1. Chat with user\n'))
     print(color.blue('\t 2. Chat with group\n'))
@@ -192,7 +201,7 @@ users = {}
 groups = {}
 def select():
     while True:
-        munu()
+        menu()
         s = input()
         if(s == '1'):
             get_all_user_info()
@@ -274,6 +283,15 @@ def chat_with_group():
         s_msg = input()
         send_group_chat(gid , s_msg)
 
+def logo():
+    show =  color.yellow(" _    ")  + color.red(" ____") + color.blue("__  __ ") + color.fuchsia("  ____ _   _    _  _____\n")
+    show += color.cyan("| |  ")  + color.red(" / ___\\") + color.blue(" \/ /  ") + color.fuchsia("/ ___| | | |  / \\|_   _|\n")
+    show += color.red("| |  ")  + color.red("| |  _ \\") + color.blue("  /  ") + color.fuchsia("| |   | |_| | / _ \\ | |\n")
+    show += color.blue("| |__")  + color.red("| |_| |/ ") + color.blue(" \  ") + color.fuchsia("| |___|  _  |/ ___ \\| |\n")
+    show += color.green("|_____") + color.red("\\____") + color.blue("/_/\\_\\") + color.fuchsia("  \\____|_| |_/_/   \\_\\_|\n")
+    print(show)
+
+logo()
 if(login()):
     select()
 else:

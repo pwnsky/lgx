@@ -4,18 +4,17 @@
 
 GCC     := gcc
 CC      := g++ 
-CFLAGS  := -g -O3 -std=c++14
+CFLAGS  := -O3 -std=c++14
 LDFLAGS := -lpthread -lmysqlclient
 #LDFLAGS += -lmariadb
 RM      := rm -rf 
 CP      := cp -r
 MKDIR   := mkdir -p
-BUILD_PATH   := ./out
+BUILD_PATH   := ./bin
 INSTALL_PATH := /usr/bin
 CONFIG_PATH  := /etc/lgx
 WWW_PATH     := /var/www
-CONFIG_FILE_PATH := $(CONFIG_PATH)/conf.json
-#DEBUGFLAGS := -DDEBUG
+#DEBUGFLAGS := -DDEBUG -g
 
 # src path
 NET_PATH    :=  ./src/net
@@ -78,7 +77,7 @@ static:$(OBJS)
 	$(CC) $^ -o $(BUILD_PATH)/$@ $(LDFLAGS) $(CFLAGS)  --static
 
 $(OBJS):%.o:%.cc
-	$(CC) -c $^ -o $@ -DDEFAULT_CONFIG_FILE=\"$(CONFIG_FILE_PATH)\" $(DEBUGFLAGS)
+	$(CC) -c $^ -o $@ $(DEBUGFLAGS)
 
 print:
 	@echo $(COBJS)
@@ -96,8 +95,8 @@ install:
 	@sudo $(MKDIR) $(CONFIG_PATH)
 	@sudo $(MKDIR) $(WWW_PATH)
 	@sudo $(CP) $(BUILD_PATH)/lgx $(INSTALL_PATH)
-	@sudo $(CP) $(BUILD_PATH)/conf.json $(CONFIG_PATH)
-	@sudo $(CP) $(BUILD_PATH)/www/* $(WWW_PATH)
+	@sudo $(CP) conf/* $(CONFIG_PATH)
+	@sudo $(CP) www/* $(WWW_PATH)
 	@echo 'lgx has installed'
 
 uninstall:

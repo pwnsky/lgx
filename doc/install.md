@@ -20,14 +20,24 @@ cd lgx
 Now you can compile with make
 
 ```
-make -j 8
-make install
+make -j
+sudo make install
+```
+
+Or using cmake to compile it
+
+```
+mkdir build
+cd build
+cmake ..
+make -j
+sudo make install
 ```
 
 ### Run
 
 ```
-sudo lgx -r
+sudo lgx
 ```
 
  Input ip address or domain you can access web to see as follows:
@@ -51,11 +61,9 @@ sudo rm /usr/bin/lgx
 
 Then you can uninstall lgx server
 
-
-
 ## Configure File
 
-The default configure file at bin/etc/config.json, 
+The default configure file at bin`/etc/lgx/conf.json`
 
 If you wanna change default page, you need to change the configure file, default configure file content as follows:
 
