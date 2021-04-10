@@ -7,6 +7,10 @@ extern lgx::log::log *lgx::data::p_log;
 extern std::string lgx::data::log_path;
 std::string lgx::data::config_path;
 
+std::string lgx::data::protocol;
+std::string lgx::data::https_crt_path;
+std::string lgx::data::https_key_path;
+
 std::vector<std::string> lgx::data::forbid_ips;
 lgx::util::firewall *lgx::data::firewall = nullptr;
 
@@ -19,13 +23,7 @@ lgx::start_up::~start_up() {
         delete lgx::data::firewall;
     }
 }
-void lgx::start_up::show_logo() {
-    std::cout << "\033[40;30m _     ______  __\n\033[0m"
-                 "\033[40;31m| |   / ___\\ \\/ /\n\033[0m"
-                 "\033[40;32m| |  | |  _ \\  / \n\033[0m"
-                 "\033[40;33m| |__| |_| |/  \\ \n\033[0m"
-                 "\033[40;34m|_____\\____/_/\\_\\\n\033[0m";
-}
+
 
 bool lgx::start_up::stop() {
     net_.stop();
@@ -36,7 +34,6 @@ bool lgx::start_up::stop() {
 bool lgx::start_up::run() {
     bool error = true;
     //setbuf(stdout, nullptr);
-    show_logo();
     do {
         if(load_config() == false) {
             std::cout << "Load config file failed!\n" << std::endl;
@@ -95,13 +92,20 @@ bool lgx::start_up::load_config() {
     try {
         port_ = obj["port"];
         number_of_thread_ = obj["number_of_thread"];
+        lgx::data::protocol = obj["protocol"];
         lgx::data::root_path = obj["root_path"];
         lgx::data::web_page = obj["web_page"];
         lgx::data::web_404_page = obj["web_404_page"];
-        lgx::data::log_path = obj["log_path"];
-    }  catch (util::json::exception &e) {
-        d_cout << e.what() << '\n';
-        abort();
+        lgx::data::log_path = obj["log"];
+    } catch (util::json::exception &e) {
+        //d_cout << e.what() << '\n';
+        std::cout << "Parse error configure file\n";
+        return false;
+    }
+
+    if(lgx::data::protocol == "https") {
+        lgx::data::https_crt_path = obj["https_crt"];
+        lgx::data::https_key_path = obj["https_key"];
     }
 
     // 防火墙禁用特定ip
@@ -121,9 +125,18 @@ bool lgx::start_up::load_config() {
 }
 
 bool lgx::start_up::run_network_module() {
-    net_.set_port(port_);
-    net_.set_number_of_thread(number_of_thread_);
-    net_.start();
+    if(port_ <= 1024 && getuid() != 0) {
+       std::cout << "Must be root" << std::endl;
+       return false;
+    }
+    net_.init(port_, number_of_thread_);
+    if(lgx::data::protocol == "https") {
+        net_.https_init(lgx::data::https_crt_path, lgx::data::https_key_path);
+        net_.start();
+    }else if(lgx::data::protocol == "http") {
+        net_.start();
+    }
+    
     return true;
 }
 

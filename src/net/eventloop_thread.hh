@@ -1,10 +1,10 @@
 #pragma once
 
-#include "../base.hh"
+#include "base.hh"
 #include "eventloop.hh"
-#include "../thread/thread.hh"
-#include "../thread/mutex_lock.hh"
-#include "../thread/condition.hh"
+#include "thread/thread.hh"
+#include "thread/mutex_lock.hh"
+#include "thread/condition.hh"
 
 class lgx::net::eventloop_thread {
 public:

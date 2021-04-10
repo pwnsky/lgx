@@ -4,8 +4,10 @@
 
 GCC     := gcc
 CC      := g++ 
-CFLAGS  := -O3 -std=c++14
-LDFLAGS := -lpthread -lmysqlclient
+CFLAGS  := -O3 -std=c++14 
+INCLUDE := -Isrc
+LDFLAGS := -lpthread -lmysqlclient -lcrypto -lssl -ldl -lcurses
+
 #LDFLAGS += -lmariadb
 RM      := rm -rf 
 CP      := cp -r
@@ -71,13 +73,13 @@ OBJS += $(MYSQL_OBJ)
 
 # complie
 lgx:$(OBJS)
-	$(CC) $^ -o $(BUILD_PATH)/$@ $(LDFLAGS) $(CFLAGS)
+	$(CC) $^ -o $(BUILD_PATH)/$@ $(LDFLAGS) $(CFLAGS) $(INCLUDE)
 
 static:$(OBJS)
 	$(CC) $^ -o $(BUILD_PATH)/$@ $(LDFLAGS) $(CFLAGS)  --static
 
 $(OBJS):%.o:%.cc
-	$(CC) -c $^ -o $@ $(DEBUGFLAGS)
+	$(CC) -c $^ -o $@ $(DEBUGFLAGS) $(INCLUDE)
 
 print:
 	@echo $(COBJS)

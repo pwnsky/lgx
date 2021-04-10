@@ -6,7 +6,7 @@
 #include <sys/time.h>
 #include <unistd.h>
 
-#include "../base.hh"
+#include "base.hh"
 #include "http.hh"
 
 class lgx::net::timer {

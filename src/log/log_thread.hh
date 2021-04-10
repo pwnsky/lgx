@@ -1,8 +1,8 @@
 #pragma once
 
-#include "../thread/thread.hh"
-#include "../thread/mutex_lock.hh"
-#include "../thread/condition.hh"
+#include "thread/thread.hh"
+#include "thread/mutex_lock.hh"
+#include "thread/condition.hh"
 #include "log.hh"
 
 class lgx::log::log_thread {

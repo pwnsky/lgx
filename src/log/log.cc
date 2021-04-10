@@ -10,13 +10,14 @@ lgx::log::io::io(){
 lgx::log::io::~io() {
 }
 
-void lgx::log::io::open(const std::string &log_path) {
+bool lgx::log::io::open(const std::string &log_path) {
     log_fd_ = ::open(log_path.c_str(), O_WRONLY | O_CREAT | O_APPEND, 0755);
     //std::cout << "log file: " << lgx::data::log_path.c_str() << '\n';
     if(-1 == log_fd_) {
-        perror("open log file");
-        abort();
+        perror(("Open log file: " + log_path).c_str());
+        return false;
     }
+    return true;
 }
 
 void lgx::log::io::close() {
@@ -47,7 +48,13 @@ lgx::log::log::~log() {
 
 }
 void lgx::log::log::loop() {
-    io_.open(log_path_);
+    if(io_.open(log_path_) == false) {
+        quit_ = true;
+        cond_.broadcast();
+        exit(-1);
+        return;
+    }
+
     while (!quit_) {
         cond_.wait();
         io_.write();

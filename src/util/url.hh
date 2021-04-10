@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../base.hh"
+#include "base.hh"
 
 class lgx::util::url {
 public:

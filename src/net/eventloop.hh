@@ -3,7 +3,7 @@
 #include <vector>
 #include <memory>
 
-#include "../thread/thread.hh"
+#include "thread/thread.hh"
 #include "epoll.hh"
 #include "util.hh"
 #include <sys/epoll.h>

@@ -7,7 +7,7 @@
 
 #include "eventloop.hh"
 #include "http.hh"
-#include "../base.hh"
+#include "base.hh"
 
 
 class lgx::net::channel {

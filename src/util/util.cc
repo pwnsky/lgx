@@ -11,10 +11,10 @@ std::string lgx::util::date_time() {
     return std::string(time_str);
 }
 
-std::string cat_file(std::string name) {
-    return "none";
+std::string lgx::util::cat_file(const std::string &file_name) {
+    return "";
 }
 
-std::string popen(std::string cmd) {
-    return "none";
+std::string lgx::util::popen(const std::string &cmd) {
+    return "";
 }

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../base.hh"
+
 #include <sstream>
 #include <queue>
 #include <string>
@@ -8,11 +8,15 @@
 #include <unistd.h>
 #include <time.h>
 #include <sys/time.h>
-#include "../util/util.hh"
-#include "../thread/condition.hh"
 #include <atomic>
 #include <sys/sem.h>
 #include <semaphore.h>
+
+
+#include "util/util.hh"
+#include "thread/condition.hh"
+#include "base.hh"
+
 
 extern lgx::log::log *lgx::data::p_log;
 extern std::string lgx::data::log_path;
@@ -24,7 +28,7 @@ public:
     io();
     ~io();
     void close();
-    void open(const std::string &log_path);
+    bool open(const std::string &log_path);
     void write();
     void push(const std::string &log);
     void wait();

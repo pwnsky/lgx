@@ -87,6 +87,9 @@ using callback2 = std::function<void(const std::string &, const std::string &)>;
 class vessel;
 using json = nlohmann::json;
 std::string date_time();
+std::string cat_file(const std::string &file_name);
+std::string popen(const std::string &cmd);
+class color;
 class url;
 class firewall;
 class md5;
@@ -145,6 +148,9 @@ public:
 
 // namespace data start
 namespace data {
+extern std::string protocol;
+extern std::string https_crt_path;
+extern std::string https_key_path;
 extern std::string root_path;
 extern std::string web_page;
 extern std::string web_404_page;

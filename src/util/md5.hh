@@ -3,7 +3,8 @@
 #include <string>
 #include <fstream>
 #include <cstring>
-#include "../base.hh"
+
+#include "base.hh"
 
 /* Type define */
 typedef unsigned char byte;

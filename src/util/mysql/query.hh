@@ -1,7 +1,8 @@
 #pragma once
-#include "../../base.hh"
-#include "../../thread/mutex_lock.hh"
+#include "base.hh"
+#include "thread/mutex_lock.hh"
 #include "sql.hh"
+
 #include <exception>
 
 extern lgx::util::mysql::sql *lgx::data::mysql::sql;

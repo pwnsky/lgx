@@ -10,7 +10,7 @@
 
 #include "noncopyable.hh"
 #include "count_down_latch.hh"
-#include "../base.hh"
+#include "base.hh"
 
 namespace lgx {
 namespace thread {

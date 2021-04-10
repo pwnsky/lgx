@@ -31,7 +31,6 @@ public:
     bool run_logger_module();
     bool run_security_module();
     bool run_network_module();
-    void show_logo();
 
 private:
     int number_of_thread_;

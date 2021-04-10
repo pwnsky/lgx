@@ -3,7 +3,7 @@
 #include <time.h>
 #include <errno.h>
 
-#include "../base.hh"
+#include "base.hh"
 #include "noncopyable.hh"
 #include "mutex_lock.hh"
 

@@ -9,7 +9,7 @@
 
 #include "channel.hh"
 #include "timer.hh"
-#include "../base.hh"
+#include "base.hh"
 
 class lgx::net::epoll {
 public:

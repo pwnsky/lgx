@@ -1,7 +1,7 @@
 #pragma once
 #include <mysql/mysql.h>
 #include <iostream>
-#include "../../base.hh"
+#include "base.hh"
 #define MYSQL_DEFAULT_CONNECT_PORT 3306
 class lgx::util::mysql::sql {
         public:

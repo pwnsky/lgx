@@ -20,11 +20,26 @@ lgx::net::net::~net() {
     //std::cout << "~net()";
     delete base_eventloop_;
 };
-void lgx::net::net::set_port(int port) {
+
+void lgx::net::net::init(int port, int number_of_thread) {
     port_ = port;
-}
-void lgx::net::net::set_number_of_thread(int number_of_thread) {
     number_of_thread_ = number_of_thread;
+}
+
+bool lgx::net::net::https_init(const std::string &https_crt, const std::string &https_key) {
+    is_https_ = true;
+    SSL_library_init();
+    OpenSSL_add_ssl_algorithms();
+    ssl_method_ = (SSL_METHOD *)TLSv1_1_server_method();
+    ssl_ctx_ = SSL_CTX_new(ssl_method_);
+    if(ssl_ctx_ == nullptr) {
+        return false;
+    }
+
+    SSL_CTX_set_verify(ssl_ctx_, SSL_VERIFY_PEER, nullptr);
+    SSL_CTX_load_verify_locations(ssl_ctx_, https_crt.c_str(), nullptr);
+    //if(SSL_CTX_use_certificate_file(ssl_ctx_, https_key) )
+    return true;
 }
 
 void lgx::net::net::start() {

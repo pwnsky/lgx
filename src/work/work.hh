@@ -12,11 +12,11 @@
 #include <pthread.h>
 #include <iterator>
 
-#include "../base.hh"
-#include "../log/log.hh"
-#include "../util/url.hh"
-#include "../util/vessel.hh"
-#include "../net/http.hh"
+#include "base.hh"
+#include "log/log.hh"
+#include "util/url.hh"
+#include "util/vessel.hh"
+#include "net/http.hh"
 #include "chat.hh"
 
 using logger = lgx::log::logger;

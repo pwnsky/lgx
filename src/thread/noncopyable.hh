@@ -1,5 +1,5 @@
 #pragma once
-#include "../base.hh"
+#include "base.hh"
 
 class lgx::thread::noncopyable {
 protected:

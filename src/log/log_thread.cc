@@ -19,7 +19,6 @@ lgx::log::log_thread::~log_thread() {
 lgx::log::log *lgx::log::log_thread::creat() {
     assert(thread_.is_started() == false);
     thread_.start();
-
     //Waiting for run
     lgx::thread::mutex_lock_guard mutex_lock_guard(mutex_lock_);
     while(log_ == nullptr)
@@ -32,8 +31,8 @@ void lgx::log::log_thread::thread_func() {
     log l;
     log_ = &l;
     log_->set_log_path(log_path_); // set the path to log
-    condition_.signal();    // Notify Main thread then realize Sync
-    log_->loop();          //run event
+    condition_.signal();           // Notify Main thread then realize Sync
+    log_->loop();                  // run event
     log_ = nullptr;
 }
 

@@ -2,7 +2,10 @@
 # Date  : 2021-04-05
 # Camke script for lgx
 
-set( CMAKE_CXX_FLAGS "-std=c++14" )
+set(CMAKE_CXX_FLAGS 
+    "-std=c++14 -O3"
+)
+
 MESSAGE(STATUS "Project: SERVER") 
 PROJECT(lgx)
 set(INSTALL_CONFIG_PATH "/etc/lgx")
@@ -11,12 +14,6 @@ set(INSTALL_WWW_PATH "/var")
 
 include_directories(
 ${PROJECT_SOURCE_DIR}/src
-${PROJECT_SOURCE_DIR}/src/net
-${PROJECT_SOURCE_DIR}/src/log
-${PROJECT_SOURCE_DIR}/src/util
-${PROJECT_SOURCE_DIR}/src/util/mysql
-${PROJECT_SOURCE_DIR}/src/work
-${PROJECT_SOURCE_DIR}/src/thread
 )
 
 set(SRC
@@ -46,7 +43,7 @@ ${PROJECT_SOURCE_DIR}/src/log/log_thread.cc
 link_directories(/lib)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/bin)
 add_executable(${PROJECT_NAME} ${SRC})
-target_link_libraries(${PROJECT_NAME} pthread mysqlclient)
+target_link_libraries(${PROJECT_NAME} pthread mysqlclient ssl crypto dl curses)
 
 INSTALL(CODE "MESSAGE(\"LGX Installing...\")")
 

@@ -10,15 +10,15 @@
 #include <sys/mman.h>
 #include <time.h>
 
-#include "../base.hh"
-#include "../net/eventloop.hh"
-#include "../net/timer.hh"
-#include "../work/work.hh"
-#include "../util/vessel.hh"
-#include "../log/log.hh"
-#include "../util/firewall.hh"
-#include "../util/md5.hh"
-#include "../util/util.hh"
+#include "base.hh"
+#include "net/eventloop.hh"
+#include "net/timer.hh"
+#include "work/work.hh"
+#include "util/vessel.hh"
+#include "log/log.hh"
+#include "util/firewall.hh"
+#include "util/md5.hh"
+#include "util/util.hh"
 
 using logger = lgx::log::logger;
 
