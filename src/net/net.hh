@@ -29,7 +29,7 @@ public:
     net(int port, int number_of_thread);
     ~net();
     void init(int port, int number_of_thread);
-    bool https_init(const std::string &https_crt, const std::string &https_key);
+    bool https_init(const std::string &https_crt, const std::string &https_csr, const std::string &https_key);
     void start();
     void stop();
     void handle_new_connection();
@@ -46,7 +46,6 @@ private:
     sp_channel accept_channel_;
     std::unique_ptr<eventloop_threadpool> up_eventloop_threadpool_;
     int accept_fd_sum = 0;
-
     SSL_METHOD *ssl_method_ = nullptr;
     SSL_CTX *ssl_ctx_ = nullptr;
     SSL *ssl_ = nullptr;

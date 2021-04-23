@@ -7,8 +7,17 @@
     "web_404_page" : "404.html",
     "log" : "/var/log/lgx.log",
     "ser": "/etc/lgx/cer.",
-    "https_crt": "/etc/lgx/https.crt",
-    "https_key" : "/etc/lgx/https.key",
+    "https_conf" : {
+        "varify_mode" : "single",
+        "crt": "/etc/lgx/https.crt",
+        "csr" : "/etc/lgx/https.csr",
+        "key" : "/etc/lgx/https.key"
+    },
+    "admin" : {
+        "account"  : "lgx",
+        "password" : "lgx_i0gan"
+    },
+
     "firewall" : {
     }
 }

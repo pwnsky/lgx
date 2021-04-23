@@ -78,4 +78,3 @@ void lgx::net::timer_manager::handle_expired_event() {
             break;
     }
 }
-

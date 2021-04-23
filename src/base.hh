@@ -148,9 +148,14 @@ public:
 
 // namespace data start
 namespace data {
+struct https_conf {
+    std::string varify_mode;
+    std::string crt;
+    std::string csr;
+    std::string key;
+};
 extern std::string protocol;
-extern std::string https_crt_path;
-extern std::string https_key_path;
+extern struct https_conf https;
 extern std::string root_path;
 extern std::string web_page;
 extern std::string web_404_page;
@@ -164,6 +169,7 @@ namespace mysql {
     extern lgx::util::mysql::sql *sql;
     extern lgx::thread::mutex_lock lock;
 }
+
 extern std::map<std::string, std::weak_ptr<lgx::net::http>> sessions;
 extern std::unordered_map<std::string, lgx::chat::user> users;
 extern std::unordered_map<std::string, lgx::chat::group> groups;

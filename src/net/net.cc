@@ -26,7 +26,7 @@ void lgx::net::net::init(int port, int number_of_thread) {
     number_of_thread_ = number_of_thread;
 }
 
-bool lgx::net::net::https_init(const std::string &https_crt, const std::string &https_key) {
+bool lgx::net::net::https_init(const std::string &https_crt, const std::string &https_csr, const std::string &https_key) {
     is_https_ = true;
     SSL_library_init();
     OpenSSL_add_ssl_algorithms();

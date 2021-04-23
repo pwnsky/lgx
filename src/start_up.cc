@@ -8,8 +8,7 @@ extern std::string lgx::data::log_path;
 std::string lgx::data::config_path;
 
 std::string lgx::data::protocol;
-std::string lgx::data::https_crt_path;
-std::string lgx::data::https_key_path;
+struct lgx::data::https_conf  lgx::data::https;
 
 std::vector<std::string> lgx::data::forbid_ips;
 lgx::util::firewall *lgx::data::firewall = nullptr;
@@ -104,8 +103,16 @@ bool lgx::start_up::load_config() {
     }
 
     if(lgx::data::protocol == "https") {
-        lgx::data::https_crt_path = obj["https_crt"];
-        lgx::data::https_key_path = obj["https_key"];
+        try {
+            lgx::util::json https_conf = obj["https_conf"];
+            lgx::data::https.varify_mode = https_conf["varify_mode"];
+            lgx::data::https.crt = https_conf["crt"];
+            lgx::data::https.csr = https_conf["csr"];
+            lgx::data::https.key = https_conf["key"];
+        }catch(util::json::exception &e) {
+            std::cout << "Parse error configure file\n";
+            return false;
+        }
     }
 
     // 防火墙禁用特定ip
@@ -131,7 +138,7 @@ bool lgx::start_up::run_network_module() {
     }
     net_.init(port_, number_of_thread_);
     if(lgx::data::protocol == "https") {
-        net_.https_init(lgx::data::https_crt_path, lgx::data::https_key_path);
+        net_.https_init(lgx::data::https.crt, lgx::data::https.csr, lgx::data::https.key);
         net_.start();
     }else if(lgx::data::protocol == "http") {
         net_.start();
