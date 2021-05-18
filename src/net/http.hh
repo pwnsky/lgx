@@ -20,6 +20,7 @@
 #include "util/md5.hh"
 #include "util/util.hh"
 
+#define HTTP_MAX_ERROR_TIMES 5
 using logger = lgx::log::logger;
 
 enum class lgx::net::HttpRecvState {

@@ -23,9 +23,10 @@
 #define MAX_BUF_SIZE          0x1000
 #define HTTP_MAX_NOT_FOUND_TIMES 25
 #define MAX_HTTP_RECV_BUF_SIZE 0x4000
-#define LGX_VERSION "1.9"
-#define SERVER_NAME "lgx " LGX_VERSION
+#define LGX_VERSION "HTTP 2.0"
+#define SERVER_NAME "LGX " LGX_VERSION
 #define DEFAULT_CONFIG_FILE "/etc/lgx/conf.json"
+
 namespace lgx {
 
 namespace thread {

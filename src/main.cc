@@ -4,6 +4,7 @@
 
 #include "start_up.hh"
 #include "util/color.hh"
+#include "base.hh"
 
 #define UNUSED(var) do { (void)(var); } while (false)
 extern std::string lgx::data::config_path;
@@ -37,13 +38,14 @@ void init() {
 
 void lgx_logo() {
     std::string show;
-    show += color::yellow(" ▄▄       ") + color::red("    ▄▄▄▄  ") + color::blue(" ▄▄▄  ▄▄▄ ") + color::fuchsia("|\n");
-    show += color::yellow(" ██       ") + color::red("  ██▀▀▀▀█ ") + color::blue("  ██▄▄██  ") + color::fuchsia("|\n");
-    show += color::yellow(" ██       ") + color::red(" ██       ") + color::blue("   ████   ") + color::fuchsia("|\n");
-    show += color::yellow(" ██       ") + color::red(" ██  ▄▄▄▄ ") + color::blue("    ██    ") + color::fuchsia("|\n");
-    show += color::yellow(" ██       ") + color::red(" ██  ▀▀██ ") + color::blue("   ████   ") + color::fuchsia("|\n");
-    show += color::yellow(" ██▄▄▄▄▄▄ ") + color::red("  ██▄▄▄██ ") + color::blue("  ██  ██  ") + color::fuchsia("|\n");
-    show += color::yellow(" ▀▀▀▀▀▀▀▀ ") + color::red("    ▀▀▀▀  ") + color::blue(" ▀▀▀  ▀▀▀ ") + color::fuchsia("|\n");
+    show += color::yellow(" ▄▄       ") + color::red("    ▄▄▄▄  ") + color::blue(" ▄▄▄  ▄▄▄ ") + color::fuchsia("\n");
+    show += color::yellow(" ██       ") + color::red("  ██▀▀▀▀█ ") + color::blue("  ██▄▄██  ") + color::fuchsia("\n");
+    show += color::yellow(" ██       ") + color::red(" ██       ") + color::blue("   ████   ") + color::fuchsia("\n");
+    show += color::yellow(" ██       ") + color::red(" ██  ▄▄▄▄ ") + color::blue("    ██    ") + color::fuchsia("\n");
+    show += color::yellow(" ██       ") + color::red(" ██  ▀▀██ ") + color::blue("   ████   ") + color::fuchsia("\n");
+    show += color::yellow(" ██▄▄▄▄▄▄ ") + color::red("  ██▄▄▄██ ") + color::blue("  ██  ██  ") + color::fuchsia("\n");
+    show += color::yellow(" ▀▀▀▀▀▀▀▀ ") + color::red("    ▀▀▀▀  ") + color::blue(" ▀▀▀  ▀▀▀ ") + color::fuchsia("\n");
+    show += color::yellow(SERVER_NAME);
     show += color::reset( "\n");
     std::cout << show;
 }

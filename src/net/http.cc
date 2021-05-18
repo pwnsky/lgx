@@ -124,14 +124,14 @@ void lgx::net::http::unbind_timer() {
 // 接收数据回调
 void lgx::net::http::handle_read() {
     __uint32_t &event = sp_channel_->get_event();
-    if(error_times_ > 0 || not_found_times_ > HTTP_MAX_NOT_FOUND_TIMES) {  // check is attacked
+    if(error_times_ > HTTP_MAX_ERROR_TIMES || not_found_times_ > HTTP_MAX_NOT_FOUND_TIMES) {  // check is attacked
         lgx::net::util::shutdown_read_fd(fd_);
         lgx::data::firewall->forbid(client_ip_);
         logger() << "FORBID IP: " + client_ip_ + ":" +  client_port_;
         event = EPOLLET;
         return;
     }
-
+    // check is forbiden
     if(lgx::data::firewall->is_forbid(client_ip_)) {
         lgx::net::util::shutdown_read_fd(fd_);
         event = EPOLLET;
